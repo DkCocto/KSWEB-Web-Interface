@@ -1,0 +1,130 @@
+@font-face {
+    font-family: 'Material Icons';
+    font-style: normal;
+    font-weight: 400;
+    src: url(../../assets/fonts/icons/MaterialIcons-Regular.eot); /* For IE 6 to 8 */
+    src: local('Material Icons'),
+    local('MaterialIcons-Regular'),
+    url(../../assets/fonts/icons/MaterialIcons-Regular.woff2) format('woff2'),
+    url(../../assets/fonts/icons/MaterialIcons-Regular.woff) format('woff'),
+    url(../../assets/fonts/icons/MaterialIcons-Regular.ttf) format('truetype');
+}
+.material-icons {
+    font-family: 'Material Icons';
+    font-weight: normal;
+    font-style: normal;
+    font-size: 24px;
+    display: inline-block;
+    line-height: 1;
+    text-transform: none;
+    letter-spacing: normal;
+    word-wrap: normal;
+    white-space: nowrap;
+    direction: ltr;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    -moz-osx-font-smoothing: grayscale;
+    font-feature-settings: 'liga';
+}
+body {
+    display: flex;
+    min-height: 100vh;
+    flex-direction: column;
+}
+main {
+    flex: 1 0 auto;
+}
+.container {
+    padding-top: 16px;
+}
+.row {
+    margin-bottom: 0;
+}
+p {
+    word-wrap: break-word;
+}
+/*.ksweb-logo {
+    margin-top: 15px;
+    margin-left: 20px;
+    width: 40px;
+}*/
+.ksweb-title {
+    font-size: 20px;
+    margin-left: 20px;
+}
+.tab {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+.nos {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+.linker {
+    cursor: pointer;
+}
+nav ul .nocover:hover {
+    background-color: rgba(0,0,0,0);
+}
+.card-panel {
+    word-wrap: break-word;
+}
+.checkbox-blue[type="checkbox"].filled-in:checked+label:after {
+    border: 2px solid #2196f3;
+    background-color: #2196f3;
+}
+input[type=password]:focus {
+    color: #2196f3;
+}
+input[type=password].valid+label {
+    color: #2196f3;
+}
+input[type=password].valid {
+    color: #2196f3;
+    border-bottom: 1px solid #2196f3;
+    box-shadow: 0 1px 0 0 #2196f3;
+}
+input[type=password]:focus.validate+label:after {
+    color: #2196f3;
+}
+input[type=password]:focus:not([readonly])+label {
+    color: #2196f3;
+}
+input[type=password]:focus:not([readonly]) {
+    border-bottom: 1px solid #2196f3;
+    box-shadow: 0 1px 0 0 #2196f3;
+}
+.label-text {
+    color: #424242;
+}
+.page-footer {
+    padding-top: 0;
+}
+.page-footer .footer-copyright {
+    padding: 0;
+    padding-bottom: 10px;
+}
+textarea.materialize-textarea:focus:not([readonly])+label {
+    color: #2196f3;
+    padding-bottom: 4px;
+}
+textarea.materialize-textarea:focus:not([readonly]) {
+    border-bottom: 1px solid #2196f3;
+    box-shadow: 0 1px 0 0 #2196f3;
+}
+.CodeMirror {
+  border: 1px solid #f7f7f7;
+  background: #f7f7f7;
+  height: auto;
+}
+.CodeMirror-gutters {
+  background-color: #eee;
+}
