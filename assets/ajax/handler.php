@@ -82,49 +82,7 @@ switch ($act) {
         } else {
             
         }
-        
-        /*if ($is_move_inis == "true") {
-            
-            $isSomeConfExists = false;
-            if (isNginxInstalled()) {
-                $isSomeConfExists = file_exists(Config::PHP_CONF_SDCARD_PATH) || file_exists(Config::MYSQL_CONF_SDCARD_PATH) || file_exists(Config::SERVER_LIGHTTPD_CONF_SDCARD_PATH) || file_exists(Config::SERVER_NGINX_CONF_SDCARD_PATH);
-            } else {
-                $isSomeConfExists = file_exists(Config::PHP_CONF_SDCARD_PATH) || file_exists(Config::MYSQL_CONF_SDCARD_PATH) || file_exists(Config::SERVER_LIGHTTPD_CONF_SDCARD_PATH);
-            }
-            
-            if ($isSomeConfExists) {
-                ?>
-<script>
-			
-    $(document).ready(function() {
-        $("#move_inis_yes_button").click(function(){			
-            $.post('ajax_handler.php', {act: "replace_inis_in_sdcard"}, function(data) {
-                $('.result').html(data);
-                $('.result').css('display', 'block');
-            });
-        });
-        $("#move_inis_no_button").click(function(){			
-            $.post('ajax_handler.php', {act: "do_not_replace_inis_in_sdcard"}, function(data) {
-                $('.result').html(data);
-                $('.result').css('display', 'block');
-            });
-        });
-    });
-				
-</script>
-
-<div style = "display: inline-block; text-align: center; padding: 25px; width: 100%">
-    <div> KSWEB Web Interface detected that '<?php echo Config::SDCARD_CONF_PATH;?>' already includes some of the ini files. Do you want to replace them? </div> <br>
-    <img class = 'img-button' id = 'move_inis_yes_button' style = 'padding-right: 25px;' src = 'images/positive.png' width = 32> 
-    <img class = 'img-button' id = 'move_inis_no_button' style = 'padding-left: 25px;' src = 'images/negative.png' width = 32> 
-</div>
-
-
-        <?php
-            } else {
-                Config::copyConfFiles(true);
-            }
-        }*/
+     
         break;
     case "replace_inis_in_sdcard":
         echo "Copying process started...<br>";
@@ -150,15 +108,6 @@ switch ($act) {
         $fp = fopen(TMP_FILE_CONFIG, "a");
         fwrite($fp, $config_text);
         fclose($fp);
-        
-        /*$configType = NULL;
-        if ($server == Server::LIGHTTPD) {
-            $configType = ConfigType::SERVER_LIGHTTPD;
-        } elseif ($server == Server::NGINX) {
-            $configType = ConfigType::SERVER_NGINX;
-        } else {
-            $configType = Config::defineType($configFile);
-        }*/
         
         shell_exec("chmod 644 " . TMP_FILE_CONFIG);
         if (Config::testConfig(Config::defineType($configFile), TMP_FILE_CONFIG)) {
