@@ -226,7 +226,7 @@ class ContentGenerator {
 		    function saveConfig(configText) {
 		        var editors = editor.getValue();
 		        $('#result').css('display', 'none');
-		        $.post('includes/ajax/handler.php', {act: "save_config", configFile: "<?= $configFile; ?>", config_text: editors}, function(data) {
+		        $.post('includes/ajax/handler.php', {act: "save_config", configFile: "<?php echo $configFile; ?>", config_text: editors}, function(data) {
 		            $('#result').html(data);
 		        });
 		    }
@@ -270,7 +270,7 @@ class ContentGenerator {
                 </div>
 				<div class="input-field">
 <textarea id="config-file-content">
-<?= file_get_contents($configFile); ?>
+<?php echo file_get_contents($configFile); ?>
 </textarea>
 <label style="padding-bottom:4px;" for="config-file-content"><?php echo basename($configFile); ?></label>
 				</div>
@@ -541,22 +541,22 @@ class ContentGenerator {
         <tbody>
             <tr>
                 <td class="right-align"><b>Hostname:</b></td>
-                <td class="left-align"><?= $serverInfo["hostname"]; ?></td>
+                <td class="left-align"><?php echo $serverInfo["hostname"]; ?></td>
 
-                <td colspan="2"><?= $cpu["name"]; ?></td>
+                <td colspan="2"><?php echo $cpu["name"]; ?></td>
 
                 <td class="right-align"><b>Total:</b></td>
-                <td class="left-align"><?= $memoryInfo["total"] . " kb"; ?></td>
+                <td class="left-align"><?php echo $memoryInfo["total"] . " kb"; ?></td>
 
                 <td class="right-align"><b>Capacity:</b></td>
-                <td class="left-align"><?= $batteryInfo["capacity"] . "%"; ?></td>
+                <td class="left-align"><?php echo $batteryInfo["capacity"] . "%"; ?></td>
 
                 <td class="right-align"><b>Signal quality:</b></td>
-                <td class="left-align"><?= $wifiInfo["quality"]; ?></td>
+                <td class="left-align"><?php echo $wifiInfo["quality"]; ?></td>
             </tr>
             <tr>
                 <td class="right-align"><b>Uptime:</b></td>
-                <td class="left-align"><?= $serverInfo["uptime"]; ?></td>
+                <td class="left-align"><?php echo $serverInfo["uptime"]; ?></td>
 
                 <td class="right-align"><b>CPU usage:</b></td>
                 <td class="left-align">
@@ -571,33 +571,33 @@ class ContentGenerator {
                 </td>
 
                 <td class="right-align"><b>Free:</b></td>
-                <td class="left-align"><?= $memoryInfo["free"] . " kb"; ?></td>
+                <td class="left-align"><?php echo $memoryInfo["free"] . " kb"; ?></td>
 
                 <td class="right-align"><b>Voltage:</b></td>
-                <td class="left-align"><?= $batteryInfo["voltage"] . " v"; ?></td>
+                <td class="left-align"><?php echo $batteryInfo["voltage"] . " v"; ?></td>
 
                 <td class="right-align"><b>Discarded packets:</b></td>
-                <td class="left-align"><?= $wifiInfo["discarded_packets"]; ?></td>
+                <td class="left-align"><?php echo $wifiInfo["discarded_packets"]; ?></td>
             </tr>
             <tr>
                 <td class="right-align"><b>Started at:</b></td>
-                <td class="left-align"><?= $serverInfo["started_at"]; ?></td>
+                <td class="left-align"><?php echo $serverInfo["started_at"]; ?></td>
 
                 <td class="right-align"></td>
                 <td class="left-align"></td>
 
                 <td class="right-align"><b>Filled:</b></td>
-                <td class="left-align"><?= $memoryInfo["filled"] . " kb"; ?></td>
+                <td class="left-align"><?php echo $memoryInfo["filled"] . " kb"; ?></td>
 
                 <td class="right-align"><b>Status:</b></td>
-                <td class="left-align"><?= $batteryInfo["status"]; ?></td>
+                <td class="left-align"><?php echo $batteryInfo["status"]; ?></td>
 
                 <td class="right-align"><b>Missed packets:</b></td>
-                <td class="left-align"><?= $wifiInfo["missed_packets"]; ?></td>
+                <td class="left-align"><?php echo $wifiInfo["missed_packets"]; ?></td>
             </tr>
             <tr>
                 <td class="right-align"><b>Requests:</b></td>
-                <td class="left-align"><?= $serverInfo["requests"]; ?></td>
+                <td class="left-align"><?php echo $serverInfo["requests"]; ?></td>
 
                 <td class="right-align"></td>
                 <td class="left-align"></td>
@@ -606,14 +606,14 @@ class ContentGenerator {
                 <td class="left-align"></td>
 
                 <td class="right-align"><b>Temperature:</b></td>
-                <td class="left-align"><?= $batteryInfo["temp"] . " C"; ?></td>
+                <td class="left-align"><?php echo $batteryInfo["temp"] . " C"; ?></td>
 
                 <td class="right-align"></td>
                 <td class="left-align"></td>
             </tr>
             <tr>
                 <td class="right-align"><b>Traffic:</b></td>
-                <td class="left-align"><?= $serverInfo["traffic"]; ?></td>
+                <td class="left-align"><?php echo $serverInfo["traffic"]; ?></td>
 
                 <td class="right-align"></td>
                 <td class="left-align"></td>
@@ -622,14 +622,14 @@ class ContentGenerator {
                 <td class="left-align"></td>
 
                 <td class="right-align"><b>Health:</b></td>
-                <td class="left-align"><?= $batteryInfo["health"]; ?></td>
+                <td class="left-align"><?php echo $batteryInfo["health"]; ?></td>
 
                 <td class="right-align"></td>
                 <td class="left-align"></td>
             </tr>
             <tr>
                 <td class="right-align"><b>Requests average:</b></td>
-                <td class="left-align"><?= $serverInfo["requests_avr"]; ?></td>
+                <td class="left-align"><?php echo $serverInfo["requests_avr"]; ?></td>
 
                 <td class="right-align"></td>
                 <td class="left-align"></td>
@@ -645,7 +645,7 @@ class ContentGenerator {
             </tr>
             <tr>
                 <td class="right-align"><b>Traffic average:</b></td>
-                <td class="left-align"><?= $serverInfo["traffic_avr"]; ?></td>
+                <td class="left-align"><?php echo $serverInfo["traffic_avr"]; ?></td>
 
                 <td class="right-align"></td>
                 <td class="left-align"></td>
@@ -718,54 +718,54 @@ class ContentGenerator {
         <tbody>
             <tr>
                 <td class="right-align"><b>Active connections:</b></td>
-                <td class="left-align"><?= $serverInfo["activeConnections"]; ?></td>
+                <td class="left-align"><?php echo $serverInfo["activeConnections"]; ?></td>
 
-                <td colspan="2" class="center-align"><?= $cpu["name"]; ?></td>
+                <td colspan="2" class="center-align"><?php echo $cpu["name"]; ?></td>
 
                 <td class="right-align"><b>Total:</b></td>
-                <td class="left-align"><?= $memoryInfo["total"] . " kb"; ?></td>
+                <td class="left-align"><?php echo $memoryInfo["total"] . " kb"; ?></td>
 
                 <td class="right-align"><b>Capacity:</b></td>
-                <td class="left-align"><?= $batteryInfo["capacity"] . "%"; ?></td>
+                <td class="left-align"><?php echo $batteryInfo["capacity"] . "%"; ?></td>
 
                 <td class="right-align"><b>Signal quality:</b></td>
-                <td class="left-align"<?= $wifiInfo["quality"]; ?></td>
+                <td class="left-align"<?php echo $wifiInfo["quality"]; ?></td>
             </tr>
             <tr>
                 <td class="right-align"><b>Accepted connections:</b></td>
-                <td class="left-align"><?= $serverInfo["accepts"]; ?></td>
+                <td class="left-align"><?php echo $serverInfo["accepts"]; ?></td>
 
                 <td class="right-align"><b>CPU usage:</b></td>
-                <td class="left-align"><?= $cpu["usage"] . "%"; ?></td>
+                <td class="left-align"><?php echo $cpu["usage"] . "%"; ?></td>
 
                 <td class="right-align"><b>Free:</b></td>
-                <td class="left-align"><?= $memoryInfo["free"] . " kb"; ?></td>
+                <td class="left-align"><?php echo $memoryInfo["free"] . " kb"; ?></td>
 
                 <td class="right-align"><b>Voltage:</b></td>
-                <td class="left-align"><?= $batteryInfo["voltage"] . " v"; ?></td>
+                <td class="left-align"><?php echo $batteryInfo["voltage"] . " v"; ?></td>
 
                 <td class="right-align"><b>Discarded packets:</b></td>
-                <td class="left-align"><?= $wifiInfo["discarded_packets"]; ?></td>
+                <td class="left-align"><?php echo $wifiInfo["discarded_packets"]; ?></td>
             </tr>
             <tr>
                 <td class="right-align"><b>Handled connections:</b></td>
-                <td class="left-align"><?= $serverInfo["handled"]; ?></td>
+                <td class="left-align"><?php echo $serverInfo["handled"]; ?></td>
 
                 <td class="right-align"><b></b></td>
                 <td class="left-align"></td>
 
                 <td class="right-align"><b>Filled:</b></td>
-                <td class="left-align"><?= $memoryInfo["filled"] . " kb"; ?></td>
+                <td class="left-align"><?php echo $memoryInfo["filled"] . " kb"; ?></td>
 
                 <td class="right-align"><b>Status:</b></td>
-                <td class="left-align"><?= $batteryInfo["status"]; ?></td>
+                <td class="left-align"><?php echo $batteryInfo["status"]; ?></td>
 
                 <td class="right-align"><b>Missed packets:</b></td>
-                <td class="left-align"><?= $wifiInfo["missed_packets"]; ?></td>
+                <td class="left-align"><?php echo $wifiInfo["missed_packets"]; ?></td>
             </tr>
             <tr>
                 <td class="right-align"><b>Handled requests:</b></td>
-                <td class="left-align"><?= $serverInfo["requests"]; ?></td>
+                <td class="left-align"><?php echo $serverInfo["requests"]; ?></td>
 
                 <td class="right-align"><b></b></td>
                 <td class="left-align"></td>
@@ -774,14 +774,14 @@ class ContentGenerator {
                 <td class="left-align"></td>
 
                 <td class="right-align"><b>Temperature:</b></td>
-                <td class="left-align"><?= $batteryInfo["temp"] . " C"; ?></td>
+                <td class="left-align"><?php echo $batteryInfo["temp"] . " C"; ?></td>
 
                 <td class="right-align"><b></b></td>
                 <td class="left-align"></td>
             </tr>
             <tr>
                 <td class="right-align"><b>Read request headers:</b></td>
-                <td class="left-align"><?= $serverInfo["reading"]; ?></td>
+                <td class="left-align"><?php echo $serverInfo["reading"]; ?></td>
 
                 <td class="right-align"><b></b></td>
                 <td class="left-align"></td>
@@ -790,14 +790,14 @@ class ContentGenerator {
                 <td class="left-align"></td>
 
                 <td class="right-align"><b>Health:</b></td>
-                <td class="left-align"><?= $batteryInfo["health"]; ?></td>
+                <td class="left-align"><?php echo $batteryInfo["health"]; ?></td>
 
                 <td class="right-align"><b></b></td>
                 <td class="left-align"></td>
             </tr>
             <tr>
                 <td class="right-align"><b>Wrote responses:</b></td>
-                <td class="left-align"><?= $serverInfo["writing"]; ?></td>
+                <td class="left-align"><?php echo $serverInfo["writing"]; ?></td>
 
                 <td class="right-align"><b></b></td>
                 <td class="left-align"></td>
@@ -813,7 +813,7 @@ class ContentGenerator {
             </tr>
             <tr>
                 <td class="right-align"><b>Keep-alive connections:</b></td>
-                <td class="left-align"><?= $serverInfo["waiting"]; ?></td>
+                <td class="left-align"><?php echo $serverInfo["waiting"]; ?></td>
 
                 <td class="right-align"><b></b></td>
                 <td class="left-align"></td>
