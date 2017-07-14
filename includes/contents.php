@@ -746,8 +746,28 @@ class ContentGenerator {
                 <td class="right-align"><b>Accepted connections:</b></td>
                 <td class="left-align"><?php echo $serverInfo["accepts"]; ?></td>
 
-                <td class="right-align"><b>CPU usage:</b></td>
-                <td class="left-align"><?php echo $cpu["usage"] . "%"; ?></td>
+				<script> 
+				
+				$(function() {
+					var f = function() {
+						$.post('includes/ajax/handler.php', {act: "get_cpu_load"}, function(data) {
+							
+							if (data == 'N/A') {
+								$('#cpu_usage_td').html(data);
+							} else {
+								$('#cpu_usage_td').html("<b>CPU usage:</b> " + data + "%");
+							}
+							
+							
+						});
+					};
+					f();
+					window.setInterval(f, 3000);
+				});
+				
+				</script>
+				
+                <td colspan="2" class="center-align" id="cpu_usage_td"></td>
 
                 <td class="right-align"><b>Free:</b></td>
                 <td class="left-align"><?php echo $memoryInfo["free"] . " kb"; ?></td>
