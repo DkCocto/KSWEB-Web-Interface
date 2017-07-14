@@ -429,8 +429,8 @@ class ContentGenerator {
 			
               <div class="card white">
                 <div class="card-content grey-text text-darken-3">
-                  <span class="card-title">Restart KSWEB</span>
-                  <p style="text-indent: 20px;"><b>You must know the following before you restart the server:</b><br/></p><br>
+                  <span class="card-title">Restart KSWEB</span><br>
+                  <b>You must know the following before you restart the server:</b><br><br>
 						The errors in config files of the server, PHP or MySQL can lead that they did not start again. In this case you can't use KSWEB Web Interface until you correct the errors.<br><br>
 						The server will be restarted only in case if KSWEB service is started on your Android device.<br><br>
 						You may need to confirm using root rights on the device in case "root functions" was enabled.
