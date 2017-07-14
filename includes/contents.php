@@ -423,16 +423,17 @@ class ContentGenerator {
         <div class="row">
             <div class="col s12 m12 l8 offset-l2">
             <div id="tootip" style="display:none;"></div>
+			
+
+			
+			
               <div class="card white">
                 <div class="card-content grey-text text-darken-3">
                   <span class="card-title">Restart KSWEB</span>
-                  <p>You must know the following before you restart the server:<br />
-
-                    <li>The errors in config files of the server, PHP or MySQL can lead that they did not start again. In this case you can't use KSWEB Web Interface until you correct the errors.</li>
-                    <li>The server will be restarted only in case if KSWEB service is started on your Android device.</li>
-                    <li>You may need to confirm using root rights on the device in case "root functions" was enabled.</li>
-
-                  </p>
+                  <p style="text-indent: 20px;"><b>You must know the following before you restart the server:</b><br/></p><br>
+						The errors in config files of the server, PHP or MySQL can lead that they did not start again. In this case you can't use KSWEB Web Interface until you correct the errors.<br><br>
+						The server will be restarted only in case if KSWEB service is started on your Android device.<br><br>
+						You may need to confirm using root rights on the device in case "root functions" was enabled.
                 </div>
                 <div class="card-action">
                   <a class="linker blue-text nos" id="go_back_button">No</a>
