@@ -8,6 +8,11 @@ $act = $_POST["act"];
 
 switch ($act) {
 
+    case "get_cpu_load":
+		$cpuInfo = getCPUInfo();
+		echo $cpuInfo["usage"];
+        break;
+
     case "download_gps_log":
 
         if (file_exists(GPS_LOG_FILE)) {

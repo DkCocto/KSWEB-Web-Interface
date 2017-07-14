@@ -558,17 +558,28 @@ class ContentGenerator {
                 <td class="right-align"><b>Uptime:</b></td>
                 <td class="left-align"><?php echo $serverInfo["uptime"]; ?></td>
 
-                <td class="right-align"><b>CPU usage:</b></td>
-                <td class="left-align">
-					<?php
-					if ($cpu["usage"] != "N/A") {
-						echo $cpu["usage"] . "%";
-					}
-					else {
-						echo "N/A";
-					}
-					?>
-                </td>
+				<script> 
+				
+				$(function() {
+					var f = function() {
+						$.post('includes/ajax/handler.php', {act: "get_cpu_load"}, function(data) {
+							
+							if (data == 'N/A') {
+								$('#cpu_usage_td').html(data);
+							} else {
+								$('#cpu_usage_td').html("<b>CPU usage:</b> " + data + "%");
+							}
+							
+							
+						});
+					};
+					f();
+					window.setInterval(f, 3000);
+				});
+				
+				</script>
+				
+                <td colspan="2" class="center-align" id="cpu_usage_td"></td>
 
                 <td class="right-align"><b>Free:</b></td>
                 <td class="left-align"><?php echo $memoryInfo["free"] . " kb"; ?></td>
