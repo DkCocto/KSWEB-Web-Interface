@@ -83,19 +83,19 @@ class ContentGenerator {
 		$(document).ready(function() {  
 
 		    $("#yes_button").click(function(){
-		        var old_password = $.base64.encode($('#old_password').val());
+		        var current_password = $.base64.encode($('#current_password').val());
 		        var new_password = $.base64.encode($('#new_password').val());
-		        var repeat_password = $.base64.encode($('#repeat_password').val());
+		        var confirm_password = $.base64.encode($('#confirm_password').val());
 			
-		        if (new_password.toString() == repeat_password.toString()) {
-		            $('#tootip').css('display', 'none');
-		            $.post('includes/ajax/handler.php', {act: "save_system_settings", old_password: old_password, new_password: new_password, repeat_password: repeat_password}, function(data) {
-		                $('#tootip').html(data);
-		                $('#tootip').css('display', 'block');
+		        if (new_password.toString() == confirm_password.toString()) {
+		            $('#result').css('display', 'none');
+		            $.post('includes/ajax/handler.php', {act: "save_system_settings", current_password: current_password, new_password: new_password, confirm_password: confirm_password}, function(data) {
+		                $('#result').html(data);
+		                $('#result').css('display', 'block');
 		            });
 			
 		        } else {
-		            Materialize.toast('Your new password must be confirmed correctly.', 4000);
+		            Materialize.toast('New password must be confirmed correctly.', 4000);
 		        }
 
 		    });
@@ -109,15 +109,15 @@ class ContentGenerator {
 	</script>
     <div class="row">
         <div class="col s12 m12 l8 offset-l2">
-        <div id="tootip" style="display:none;"></div>
+        <div id="result" style="display:none;"></div>
           <div class="card white">
             <div class="card-content grey-text text-darken-3">
               <span class="card-title">Administrator password</span>
 
               <div class="row">
                 <div class="input-field col s12">
-                  <input id="old_password" type="password" class="validate">
-                  <label for="old_password">Current password</label>
+                  <input id="current_password" type="password" class="validate">
+                  <label for="current_password">Current password</label>
                 </div>
               </div>
               <div class="row">
@@ -128,8 +128,8 @@ class ContentGenerator {
               </div>
               <div class="row">
                 <div class="input-field col s12">
-                  <input id="repeat_password" type="password" class="validate">
-                  <label for="repeat_password">Confirm password</label>
+                  <input id="confirm_password" type="password" class="validate">
+                  <label for="confirm_password">Confirm password</label>
                 </div>
               </div>
             </div>
@@ -212,13 +212,8 @@ class ContentGenerator {
 		}
 
 ?>
-	<script type="text/javascript" src="assets/js/xedit.js"></script>
 	<script type="text/javascript">
 		$(document).ready(function() {
-		    xedit.bind($("#config-file-content"), function (el) {
-		        saveConfig($("#config-file-content").val());
-		    });
-
 		    $("#save-config").click(function(){
 		        saveConfig($("#config-file-content").val());
 		    });
@@ -308,50 +303,31 @@ class ContentGenerator {
 
 		        initVars();
 
-		        $("#do_restart_button").click(function(){
-		            if (checkAllFields()) {	
-		                var is_start_min;
-		                $('#is_start_min').is(':checked') ? is_start_min = "true" : is_start_min = "false";		
-					
-		                var auto_start;
-		                $('#auto_start').is(':checked') ? auto_start = "true" : auto_start = "false";		
-					
-		                var move_inis;
-		                $('#move_inis').is(':checked') ? move_inis = "true" : move_inis = "false";
-					
-		                var wifiLock;
-		                $('#wifiLock').is(':checked') ? wifiLock = "true" : wifiLock = "false";
-					
-		                $('#tootip').css('display', 'none');
-		                $.post('includes/ajax/handler.php', {act: "save_ksweb_settings", wifiLock: wifiLock, wifiLock_old: wifiLock_old, is_start_min: is_start_min, is_start_min_old: is_start_min_old, auto_start: auto_start, auto_start_old: auto_start_old, move_inis: move_inis, move_inis_old: move_inis_old}, function(data) {
-		                    $('#tootip').html(data);
-		                    $('#tootip').css('display', 'block');
-		                    initVars();
-		                });
-		            }
-		        });
-			
-		        $("#go_back_button").click(function(){			
-		            document.location.href = "<?php getFullRootAddress(); ?>?page=0";
-		        });
-			
-		        $("#move_inis").click(function(){			
-		            var move_inis;
-		            $('#move_inis').is(':checked') ? move_inis = "true" : move_inis = "false";
+		        $("#save_btn").click(function(){
+		            
+					var is_start_min;
+					$('#is_start_min').is(':checked') ? is_start_min = "true" : is_start_min = "false";		
 				
-		            if (move_inis == "true") {
-		                $('#tootip').css('display', 'none');
-		                $.post('includes/ajax/handler.php', {act: "move_inis_click_handler", move_inis: move_inis}, function(data) {
-		                    $('#tootip').html(data);
-		                    $('#tootip').css('display', 'block');
-		                });
-		            }
+					var auto_start;
+					$('#auto_start').is(':checked') ? auto_start = "true" : auto_start = "false";		
 				
+					var move_inis;
+					$('#move_inis').is(':checked') ? move_inis = "true" : move_inis = "false";
+				
+					var wifiLock;
+					$('#wifiLock').is(':checked') ? wifiLock = "true" : wifiLock = "false";
+				
+					$('#result').css('display', 'none');
+					$.post('includes/ajax/handler.php', {act: "save_ksweb_settings", wifiLock: wifiLock, wifiLock_old: wifiLock_old, is_start_min: is_start_min, is_start_min_old: is_start_min_old, auto_start: auto_start, auto_start_old: auto_start_old, move_inis: move_inis, move_inis_old: move_inis_old}, function(data) {
+						Materialize.toast('Settings saved.', 4000);
+						if (data.length > 0) {
+							$('#result').html(data);
+							$('#result').removeClass('card-panel red darken-1 white-text');
+							$('#result').addClass('card-panel green darken-1 white-text').fadeIn(1500).delay(5000).fadeOut(1500);
+						}
+						initVars();
+					});
 		        });
-			
-		        function checkAllFields(){
-		            return true;
-		        }
 			
 		        function isNumber(number){
 		            if (number == 0) return true;
@@ -363,7 +339,7 @@ class ContentGenerator {
 		</script>
         <div class="row">
             <div class="col s12 m12 l8 offset-l2">
-            <div id="tootip" style="display:none;"></div>
+            <div id="result" class="card-panel" style="display:none;"></div>
               <div class="card white">
                 <div class="card-content grey-text text-darken-3">
                   <span class="card-title">KSWEB Settings</span>
@@ -394,8 +370,7 @@ class ContentGenerator {
                     </p>
                 </div>
                 <div class="card-action">
-                  <a class="linker blue-text nos" id="go_back_button">Cancel</a>
-                  <a class="linker blue-text nos" id="do_restart_button">Save</a>
+                  <a class="linker blue-text nos" id="save_btn">Save</a>
                 </div>
               </div>
             </div>
@@ -430,7 +405,7 @@ class ContentGenerator {
               <div class="card white">
                 <div class="card-content grey-text text-darken-3">
                   <span class="card-title">Restart KSWEB</span><br>
-                  <b>You must know the following before you restart the server:</b><br><br>
+                  <b>You should know the following before you restart the server:</b><br><br>
 						The errors in config files of the server, PHP or MySQL can lead that they did not start again. In this case you can't use KSWEB Web Interface until you correct the errors.<br><br>
 						The server will be restarted only in case if KSWEB service is started on your Android device.<br><br>
 						You may need to confirm using root rights on the device in case "root functions" was enabled.

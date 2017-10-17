@@ -13,24 +13,10 @@ switch ($act) {
 		echo $cpuInfo["usage"];
         break;
 
-    case "download_gps_log":
-
-        if (file_exists(GPS_LOG_FILE)) {
-            $settings = getKSWEBSettings();
-            $file = (GPS_LOG_FILE);
-            header("Content-Type: application/octet-stream");
-            header("Accept-Ranges: bytes");
-            header("Content-Length: " . filesize($file));
-            header("Content-Disposition: attachment; filename=log.txt");
-            readfile($file);
-        }
-
-        break;
-
     case "restart_server":
 
         $ourFileName = "/mnt/sdcard/ksweb/tmp/restart";
-        $ourFileHandle = fopen($ourFileName, 'w') or die("can't open file");
+        $ourFileHandle = fopen($ourFileName, 'w') or die("Can't create server restart marker on sdcard!");
         fclose($ourFileHandle);
         echo "<script type=\"text/javascript\">Materialize.toast('Server restarted.', 4000);</script>";
         break;
@@ -47,61 +33,27 @@ switch ($act) {
         $settings["move_inis_old"] = trim($_POST["move_inis_old"]);
         $settings["wifiLock"] = trim($_POST["wifiLock"]);
         $settings["wifiLock_old"] = trim($_POST["wifiLock_old"]);
+		
+		if ($settings["is_start_min_old"] != $settings["is_start_min"]) {
+			setKSWEBSetting("enableStartMinimized", $settings["is_start_min"], $settings);
+		}
 
-        if (checkSettings($settings)) {
+		if ($settings["auto_start_old"] != $settings["auto_start"]) {
+			setKSWEBSetting("enableAutoStart", $settings["auto_start"], $settings);
+		}
 
-            if ($settings["is_start_min_old"] != $settings["is_start_min"]) {
-                echo "Switching KSWEB \"is start minimized\" function...<br>";
-                setKSWEBSetting("enableStartMinimized", $settings["is_start_min"], $settings);
-            }
+		if ($settings["move_inis_old"] != $settings["move_inis"]) {
+			if($settings["move_inis"] == "true") {
+				$output = Config::copyAllConfigFiles();
+				$output .= Config::copyAllHosts();
+				echo $output;
+			}
+			setKSWEBSetting("externalINI", $settings["move_inis"], $settings);
+		}
 
-            if ($settings["auto_start_old"] != $settings["auto_start"]) {
-                echo "Switching KSWEB auto starting...<br>";
-                setKSWEBSetting("enableAutoStart", $settings["auto_start"], $settings);
-            }
-
-            if ($settings["move_inis_old"] != $settings["move_inis"]) {
-                echo "Switching to another group of the INI files...<br>";
-                setKSWEBSetting("externalINI", $settings["move_inis"], $settings);
-            }
-
-            if ($settings["wifiLock_old"] != $settings["wifiLock"]) {
-                echo "Switching Wi-Fi lock...<br>";
-                setKSWEBSetting("wifiLock", $settings["wifiLock"], $settings);
-            }
-
-        echo "<script type=\"text/javascript\">Materialize.toast('Settings changed.', 4000);</script>";
-        } else {
-            echo "<script type=\"text/javascript\">Materialize.toast('Error occured while changing the settings.', 4000);</script>";
-        }
-
-        break;
-
-    case "move_inis_click_handler":
-
-        $is_move_inis = $_POST["move_inis"];
-            Config::copyAllConfigFiles();
-            Config::copyAllHosts();
-        if ($is_move_inis == "true") {
-            
-        } else {
-            
-        }
-    
-        break;
-        
-    case "replace_inis_in_sdcard":
-        echo "Copying process started...<br>";
-
-        Config::copyConfFiles(true);
-
-        break;
-
-    case "do_not_replace_inis_in_sdcard":
-
-        echo "Copying process started...<br>";
-
-        Config::copyConfFiles(false);
+		if ($settings["wifiLock_old"] != $settings["wifiLock"]) {
+			setKSWEBSetting("wifiLock", $settings["wifiLock"], $settings);
+		}
 
         break;
 
@@ -135,9 +87,9 @@ switch ($act) {
 
     case "save_system_settings":
 
-        $settings["old_password"] = base64_decode($_POST["old_password"]);
+        $settings["current_password"] = base64_decode($_POST["current_password"]);
         $settings["new_password"] = base64_decode($_POST["new_password"]);
-        $settings["repeat_password"] = base64_decode($_POST["repeat_password"]);
+        $settings["confirm_password"] = base64_decode($_POST["confirm_password"]);
 
         saveSystemSettings($settings);
 

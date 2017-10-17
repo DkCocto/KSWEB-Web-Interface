@@ -24,6 +24,7 @@ class Config {
 
     const LIGHTTPD_BIN_PATH                 = "/data/data/ru.kslabs.ksweb/components/lighttpd/sbin/lighttpd";
     const NGINX_BIN_PATH                    = "/data/data/ru.kslabs.ksweb/components/nginx/sbin/nginx";
+	const NGINX_LIB_PATH                    = "/data/data/ru.kslabs.ksweb/components/nginx/lib";
     const MYSQLD_BIN_PATH                   = "/data/data/ru.kslabs.ksweb/components/mysql/sbin/mysqld";
 
     private $currentConfig;
@@ -82,7 +83,7 @@ class Config {
                 return true;
         }
         if ($configType == ConfigType::SERVER_NGINX) {
-            $output = str_replace("\n", "<br>", shell_exec(Config::NGINX_BIN_PATH . " -t -c ".$configFile." 2>&1"));
+            $output = str_replace("\n", "<br>", shell_exec("LD_LIBRARY_PATH=" . Config::NGINX_LIB_PATH . " " . Config::NGINX_BIN_PATH . " -t -c ".$configFile." 2>&1"));
             echo "============<br>Testing config...<br>" . $output . "============<br>";
             if (strpos($output, "syntax is ok")) return true;
         }
@@ -126,7 +127,7 @@ class Config {
         echo "Saved file: ".$configFile;
     }
 
-    public static function copyConfFiles($isReplace) {
+    /*public static function copyConfFiles($isReplace) {
         //php.ini
         @mkdir(Config::SDCARD_CONF_PATH);
         if (!file_exists(Config::PHP_CONF_SDCARD_PATH) || $isReplace) {
@@ -180,52 +181,57 @@ class Config {
         }
         //---
         echo "Done!<br>";
-    }
+    }*/
 
     public static function copyAllConfigFiles() {
         //php.ini
         @mkdir(Config::SDCARD_CONF_PATH);
+		$result = "";
         if (copy(Config::PHP_CONF_PATH, Config::PHP_CONF_SDCARD_PATH)) {
-            echo "Copied file: " . Config::PHP_CONF_PATH . " -> " . Config::PHP_CONF_SDCARD_PATH . "<br>";
+            $result .= "Copied file: " . Config::PHP_CONF_PATH . " -> " . Config::PHP_CONF_SDCARD_PATH . "<br>";
         } else {
-            echo "Error copying file: " . Config::PHP_CONF_PATH . " -> " . Config::PHP_CONF_SDCARD_PATH . "<br>";
+            $result .= "Error copying file: " . Config::PHP_CONF_PATH . " -> " . Config::PHP_CONF_SDCARD_PATH . "<br>";
         }
         //---
         //my.ini
         if (copy(Config::MYSQL_CONF_PATH, Config::MYSQL_CONF_SDCARD_PATH)) {
-            echo "Copied file: " . Config::MYSQL_CONF_PATH . " -> " . Config::MYSQL_CONF_SDCARD_PATH . "<br>";
+            $result .= "Copied file: " . Config::MYSQL_CONF_PATH . " -> " . Config::MYSQL_CONF_SDCARD_PATH . "<br>";
         } else {
-            echo "Error copying file: " . Config::MYSQL_CONF_PATH . " -> " . Config::MYSQL_CONF_SDCARD_PATH . "<br>";
+            $result .= "Error copying file: " . Config::MYSQL_CONF_PATH . " -> " . Config::MYSQL_CONF_SDCARD_PATH . "<br>";
         }
         //---
         //lighttpd.conf
         if (copy(Config::SERVER_LIGHTTPD_CONF_PATH, Config::SERVER_LIGHTTPD_CONF_SDCARD_PATH)) {
-            echo "Copied file: " . Config::SERVER_LIGHTTPD_CONF_PATH . " -> " . Config::SERVER_LIGHTTPD_CONF_SDCARD_PATH . "<br>";
+            $result .= "Copied file: " . Config::SERVER_LIGHTTPD_CONF_PATH . " -> " . Config::SERVER_LIGHTTPD_CONF_SDCARD_PATH . "<br>";
         } else {
-            echo "Error copying file: " . Config::SERVER_LIGHTTPD_CONF_PATH . " -> " . Config::SERVER_LIGHTTPD_CONF_SDCARD_PATH . "<br>";
+            $result .= "Error copying file: " . Config::SERVER_LIGHTTPD_CONF_PATH . " -> " . Config::SERVER_LIGHTTPD_CONF_SDCARD_PATH . "<br>";
         }
         //---
         //---
         //nginx.conf
         if (isNginxInstalled()) {
             if (copy(Config::SERVER_NGINX_CONF_PATH, Config::SERVER_NGINX_CONF_SDCARD_PATH)) {
-                echo "Copied file: " . Config::SERVER_NGINX_CONF_PATH . " -> " . Config::SERVER_NGINX_CONF_SDCARD_PATH . "<br>";
+                $result .= "Copied file: " . Config::SERVER_NGINX_CONF_PATH . " -> " . Config::SERVER_NGINX_CONF_SDCARD_PATH . "<br>";
             } else {
-                echo "Error copying file: " . Config::SERVER_NGINX_CONF_PATH . " -> " . Config::SERVER_NGINX_CONF_SDCARD_PATH . "<br>";
+                $result .= "Error copying file: " . Config::SERVER_NGINX_CONF_PATH . " -> " . Config::SERVER_NGINX_CONF_SDCARD_PATH . "<br>";
             }
         }
+		return $result;
         //---
-        echo "Done!<br>";
+        //echo "Done!<br>";
     }
 
     public static function copyAllHosts() {
         Config::deleteAllHostsFromSDLighttpd();
+		
+		$result = "";
+		
         foreach (glob(Config::SERVER_LIGHTTPD_CONF_DIR."/*_host.conf") as $file) {
 
             if (copy($file, Config::SERVER_LIGHTTPD_CONF_SDCARD_DIR ."/". basename($file))) {
-                echo "Copied file: " . $file . " -> " . Config::SERVER_LIGHTTPD_CONF_SDCARD_DIR ."/". basename($file) . "<br>";
+                $result .= "Copied file: " . $file . " -> " . Config::SERVER_LIGHTTPD_CONF_SDCARD_DIR ."/". basename($file) . "<br>";
             } else {
-                echo "Error copying file: " . $file . " -> " . Config::SERVER_LIGHTTPD_CONF_SDCARD_DIR ."/". basename($file) . "<br>";
+                $result .= "Error copying file: " . $file . " -> " . Config::SERVER_LIGHTTPD_CONF_SDCARD_DIR ."/". basename($file) . "<br>";
             }
 
         }
@@ -235,15 +241,16 @@ class Config {
             foreach (glob(Config::SERVER_NGINX_CONF_DIR."/*_host.conf") as $file) {
 
                 if (copy($file, Config::SERVER_NGINX_CONF_SDCARD_DIR ."/". basename($file))) {
-                    echo "Copied file: " . $file . " -> " . Config::SERVER_NGINX_CONF_SDCARD_DIR  ."/". basename($file) . "<br>";
+                    $result .= "Copied file: " . $file . " -> " . Config::SERVER_NGINX_CONF_SDCARD_DIR  ."/". basename($file) . "<br>";
                 } else {
-                    echo "Error copying file: " . $file . " -> " . Config::SERVER_NGINX_CONF_SDCARD_DIR  ."/". basename($file) . "<br>";
+                    $result .= "Error copying file: " . $file . " -> " . Config::SERVER_NGINX_CONF_SDCARD_DIR  ."/". basename($file) . "<br>";
                 }
 
             }
 
         }
-    }
+		return $result;
+	}
 
     public static function deleteAllHostsFromSDLighttpd() {
         foreach (glob(Config::SERVER_LIGHTTPD_CONF_SDCARD_DIR."/*_host.conf") as $file) {

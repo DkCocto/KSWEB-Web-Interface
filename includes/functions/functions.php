@@ -290,13 +290,13 @@ function getAuthInfoNginx() {
 
 function saveSystemSettings($settings) {
     if (!empty($settings["new_password"])) {
-        if ($settings["new_password"] == $settings["repeat_password"]) {
+        if ($settings["new_password"] == $settings["confirm_password"]) {
             $authInfo = NULL;
             $serverType = getServerType();
             if ($serverType == Server::LIGHTTPD) $authInfo = getAuthInfoLighttpd();
             if ($serverType == Server::NGINX) $authInfo = getAuthInfoNginx();
-            if ($settings["old_password"] == $authInfo["password"]) {
-                //savePassword($settings["new_password"]);
+			
+            if ($settings["current_password"] == $authInfo["password"]) {
                 $password = $settings["new_password"];
 
                 $serverType = getServerType();
@@ -313,18 +313,17 @@ function saveSystemSettings($settings) {
                     fwrite($fp, "admin:{PLAIN}$password");
                     fclose($fp);
                 }
-                echo "<script type=\"text/javascript\">Materialize.toast('Your password has been changed.', 4000);</script>";
+                
+				echo "<script>Materialize.toast('Your password has been changed.', 4000);</script>";
+            } else {
+                echo "<script>Materialize.toast('The current password you\'ve entered is incorrect. Please enter a different password.', 4000);</script>";
             }
-            else {
-                echo "<script type=\"text/javascript\">Materialize.toast('The current password you've entered is incorrect. Please enter a different password.', 4000);</script>";
-            }
-        }
-        else {
-            echo "<script type=\"text/javascript\">Materialize.toast('Your new password must be confirmed correctly.', 4000);</script>";
+        } else {
+            echo "<script>Materialize.toast('New password must be confirmed correctly.', 4000);</script>";
         }
     }
     else {
-        echo "<script type=\"text/javascript\">Materialize.toast('You must enter a new password in order to change it.', 4000);</script>";
+        echo "<script>Materialize.toast('You must enter a new password in order to change it.', 4000);</script>";
     }
 }
 
