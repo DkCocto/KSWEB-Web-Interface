@@ -12,19 +12,32 @@ class Config {
     const SERVER_NGINX_CONF_PATH            = "/data/data/ru.kslabs.ksweb/components/nginx/conf/nginx.conf";
     const SERVER_NGINX_CONF_DIR             = "/data/data/ru.kslabs.ksweb/components/nginx/conf";
 
+    const SERVER_APACHE_CONF_PATH           = "/data/data/ru.kslabs.ksweb/components/httpd/conf/httpd.conf";
+    const SERVER_APACHE_CONF_DIR            = "/data/data/ru.kslabs.ksweb/components/httpd/conf";
+
     const PHP_CONF_SDCARD_PATH              = "/mnt/sdcard/ksweb/conf/php/php.ini";
     const MYSQL_CONF_SDCARD_PATH            = "/mnt/sdcard/ksweb/conf/mysql/my.ini";
+
     const SERVER_LIGHTTPD_CONF_SDCARD_PATH  = "/mnt/sdcard/ksweb/conf/lighttpd/lighttpd.conf";
     const SERVER_LIGHTTPD_CONF_SDCARD_DIR   = "/mnt/sdcard/ksweb/conf/lighttpd";
 
     const SERVER_NGINX_CONF_SDCARD_PATH     = "/mnt/sdcard/ksweb/conf/nginx/nginx.conf";
     const SERVER_NGINX_CONF_SDCARD_DIR      = "/mnt/sdcard/ksweb/conf/nginx";
 
+    const SERVER_APACHE_CONF_SDCARD_PATH     = "/mnt/sdcard/ksweb/conf/apache/httpd.conf";
+    const SERVER_APACHE_CONF_SDCARD_DIR      = "/mnt/sdcard/ksweb/conf/apache";
+
     const MYSQL_LANGUAGE_FILE_PATH          = "/data/data/ru.kslabs.ksweb/components/mysql/sbin/share/mysql/english";
 
     const LIGHTTPD_BIN_PATH                 = "/data/data/ru.kslabs.ksweb/components/lighttpd/sbin/lighttpd";
+    const LIGHTTPD_LIB_PATH                 = "/data/data/ru.kslabs.ksweb/components/lighttpd/lib";
+
     const NGINX_BIN_PATH                    = "/data/data/ru.kslabs.ksweb/components/nginx/sbin/nginx";
 	const NGINX_LIB_PATH                    = "/data/data/ru.kslabs.ksweb/components/nginx/lib";
+
+    const APACHE_BIN_PATH                    = "/data/data/ru.kslabs.ksweb/components/httpd/bin/apache";
+    const APACHE_LIB_PATH                    = "/data/data/ru.kslabs.ksweb/components/httpd/lib";
+
     const MYSQLD_BIN_PATH                   = "/data/data/ru.kslabs.ksweb/components/mysql/sbin/mysqld";
 
     private $currentConfig;
@@ -41,6 +54,10 @@ class Config {
 
         if ($configType == ConfigType::SERVER_NGINX) {
             $this->currentConfig = ($move_inis == "true") ? Config::SERVER_NGINX_CONF_SDCARD_PATH : Config::SERVER_NGINX_CONF_PATH;
+        }
+
+        if ($configType == ConfigType::SERVER_APACHE) {
+            $this->currentConfig = ($move_inis == "true") ? Config::SERVER_APACHE_CONF_SDCARD_PATH : Config::SERVER_APACHE_CONF_PATH;
         }
 
         if ($configType == ConfigType::PHP) {
@@ -64,7 +81,7 @@ class Config {
 
     public static function testConfig($configType, $configFile) {
         if ($configType == ConfigType::SERVER_LIGHTTPD) {
-            $output = str_replace("\n", "<br>", shell_exec(Config::LIGHTTPD_BIN_PATH . " -t -f ".$configFile." 2>&1"));
+            $output = str_replace("\n", "<br>", shell_exec("LD_LIBRARY_PATH=" . Config::LIGHTTPD_LIB_PATH . " " . Config::LIGHTTPD_BIN_PATH . " -t -f ".$configFile." 2>&1"));
             echo "============<br>Testing config...<br>" . $output . "============<br>";
             if (strpos($output, "yntax OK"))
                 return true;
@@ -87,6 +104,16 @@ class Config {
             echo "============<br>Testing config...<br>" . $output . "============<br>";
             if (strpos($output, "syntax is ok")) return true;
         }
+
+
+        if ($configType == ConfigType::SERVER_APACHE) {
+            $output = str_replace("\n", "<br>", shell_exec("LD_LIBRARY_PATH=" . Config::APACHE_LIB_PATH . " " . Config::APACHE_BIN_PATH . " -t -f " . $configFile . " 2>&1 1>/dev/null"));
+            echo "============<br>Testing config...<br>" . $output . "============<br>";
+            if (strpos($output, "yntax OK")) {
+                return true;
+            }
+        }
+
         if ($configType == -1) {
             return true;
         }
@@ -105,6 +132,9 @@ class Config {
         }
         if ($configFile == Config::SERVER_NGINX_CONF_PATH || $configFile == Config::SERVER_NGINX_CONF_SDCARD_PATH) {
             return ConfigType::SERVER_NGINX;
+        }
+        if ($configFile == Config::SERVER_APACHE_CONF_PATH || $configFile == Config::SERVER_APACHE_CONF_SDCARD_PATH) {
+            return ConfigType::SERVER_APACHE;
         }
         return -1;
     }
@@ -126,62 +156,6 @@ class Config {
         shell_exec("chmod 644 ".$configFile);
         echo "Saved file: ".$configFile;
     }
-
-    /*public static function copyConfFiles($isReplace) {
-        //php.ini
-        @mkdir(Config::SDCARD_CONF_PATH);
-        if (!file_exists(Config::PHP_CONF_SDCARD_PATH) || $isReplace) {
-            if (@unlink(Config::PHP_CONF_SDCARD_PATH)) {
-                echo "Deleted file: " . Config::PHP_CONF_SDCARD_PATH . "<br>";
-            }
-            if (copy(Config::PHP_CONF_PATH, Config::PHP_CONF_SDCARD_PATH)) {
-                echo "Copied file: " . Config::PHP_CONF_PATH . " -> " . Config::PHP_CONF_SDCARD_PATH . "<br>";
-            } else {
-                echo "Error copying file: " . Config::PHP_CONF_PATH . " -> " . Config::PHP_CONF_SDCARD_PATH . "<br>";
-            }
-        }
-        //---
-        //my.ini
-        if (!file_exists(Config::MYSQL_CONF_SDCARD_PATH) || $isReplace) {
-            if (@unlink(Config::MYSQL_CONF_SDCARD_PATH)) {
-                echo "Deleted file: " . Config::MYSQL_CONF_SDCARD_PATH . "<br>";
-            }
-            if (copy(Config::MYSQL_CONF_PATH, Config::MYSQL_CONF_SDCARD_PATH)) {
-                echo "Copied file: " . Config::MYSQL_CONF_PATH . " -> " . Config::MYSQL_CONF_SDCARD_PATH . "<br>";
-            } else {
-                echo "Error copying file: " . Config::MYSQL_CONF_PATH . " -> " . Config::MYSQL_CONF_SDCARD_PATH . "<br>";
-            }
-        }
-        //---
-        //lighttpd.conf
-        if (!file_exists(Config::SERVER_LIGHTTPD_CONF_SDCARD_PATH) || $isReplace) {
-            if (@unlink(Config::SERVER_LIGHTTPD_CONF_SDCARD_PATH)) {
-                echo "Deleted file: " . Config::SERVER_LIGHTTPD_CONF_SDCARD_PATH . "<br>";
-            }
-            if (copy(Config::SERVER_LIGHTTPD_CONF_PATH, Config::SERVER_LIGHTTPD_CONF_SDCARD_PATH)) {
-                echo "Copied file: " . Config::SERVER_LIGHTTPD_CONF_PATH . " -> " . Config::SERVER_LIGHTTPD_CONF_SDCARD_PATH . "<br>";
-            } else {
-                echo "Error copying file: " . Config::SERVER_LIGHTTPD_CONF_PATH . " -> " . Config::SERVER_LIGHTTPD_CONF_SDCARD_PATH . "<br>";
-            }
-        }
-        //---
-        //---
-        //nginx.conf
-        if (isNginxInstalled()) {
-            if (!file_exists(Config::SERVER_NGINX_CONF_SDCARD_PATH) || $isReplace) {
-                if (@unlink(Config::SERVER_NGINX_CONF_SDCARD_PATH)) {
-                    echo "Deleted file: " . Config::SERVER_NGINX_CONF_SDCARD_PATH . "<br>";
-                }
-                if (copy(Config::SERVER_NGINX_CONF_PATH, Config::SERVER_NGINX_CONF_SDCARD_PATH)) {
-                    echo "Copied file: " . Config::SERVER_NGINX_CONF_PATH . " -> " . Config::SERVER_NGINX_CONF_SDCARD_PATH . "<br>";
-                } else {
-                    echo "Error copying file: " . Config::SERVER_NGINX_CONF_PATH . " -> " . Config::SERVER_NGINX_CONF_SDCARD_PATH . "<br>";
-                }
-            }
-        }
-        //---
-        echo "Done!<br>";
-    }*/
 
     public static function copyAllConfigFiles() {
         //php.ini
@@ -209,13 +183,19 @@ class Config {
         //---
         //---
         //nginx.conf
-        if (isNginxInstalled()) {
-            if (copy(Config::SERVER_NGINX_CONF_PATH, Config::SERVER_NGINX_CONF_SDCARD_PATH)) {
-                $result .= "Copied file: " . Config::SERVER_NGINX_CONF_PATH . " -> " . Config::SERVER_NGINX_CONF_SDCARD_PATH . "<br>";
-            } else {
-                $result .= "Error copying file: " . Config::SERVER_NGINX_CONF_PATH . " -> " . Config::SERVER_NGINX_CONF_SDCARD_PATH . "<br>";
-            }
+        if (copy(Config::SERVER_NGINX_CONF_PATH, Config::SERVER_NGINX_CONF_SDCARD_PATH)) {
+            $result .= "Copied file: " . Config::SERVER_NGINX_CONF_PATH . " -> " . Config::SERVER_NGINX_CONF_SDCARD_PATH . "<br>";
+        } else {
+            $result .= "Error copying file: " . Config::SERVER_NGINX_CONF_PATH . " -> " . Config::SERVER_NGINX_CONF_SDCARD_PATH . "<br>";
         }
+        //---
+        //httpd.conf
+        if (copy(Config::SERVER_APACHE_CONF_PATH, Config::SERVER_APACHE_CONF_SDCARD_PATH)) {
+            $result .= "Copied file: " . Config::SERVER_APACHE_CONF_PATH . " -> " . Config::SERVER_APACHE_CONF_SDCARD_PATH . "<br>";
+        } else {
+            $result .= "Error copying file: " . Config::SERVER_APACHE_CONF_PATH . " -> " . Config::SERVER_APACHE_CONF_SDCARD_PATH . "<br>";
+        }
+        //---
 		return $result;
         //---
         //echo "Done!<br>";
@@ -236,19 +216,28 @@ class Config {
 
         }
 
-        if (isNginxInstalled()) {
-            Config::deleteAllHostsFromSDNginx();
-            foreach (glob(Config::SERVER_NGINX_CONF_DIR."/*_host.conf") as $file) {
+        Config::deleteAllHostsFromSDNginx();
+        foreach (glob(Config::SERVER_NGINX_CONF_DIR."/*_host.conf") as $file) {
 
-                if (copy($file, Config::SERVER_NGINX_CONF_SDCARD_DIR ."/". basename($file))) {
-                    $result .= "Copied file: " . $file . " -> " . Config::SERVER_NGINX_CONF_SDCARD_DIR  ."/". basename($file) . "<br>";
-                } else {
-                    $result .= "Error copying file: " . $file . " -> " . Config::SERVER_NGINX_CONF_SDCARD_DIR  ."/". basename($file) . "<br>";
-                }
-
+            if (copy($file, Config::SERVER_NGINX_CONF_SDCARD_DIR ."/". basename($file))) {
+                $result .= "Copied file: " . $file . " -> " . Config::SERVER_NGINX_CONF_SDCARD_DIR  ."/". basename($file) . "<br>";
+            } else {
+                $result .= "Error copying file: " . $file . " -> " . Config::SERVER_NGINX_CONF_SDCARD_DIR  ."/". basename($file) . "<br>";
             }
 
         }
+
+        Config::deleteAllHostsFromSDApache();
+        foreach (glob(Config::SERVER_APACHE_CONF_DIR."/*_host.conf") as $file) {
+
+            if (copy($file, Config::SERVER_APACHE_CONF_SDCARD_DIR ."/". basename($file))) {
+                $result .= "Copied file: " . $file . " -> " . Config::SERVER_APACHE_CONF_SDCARD_DIR  ."/". basename($file) . "<br>";
+            } else {
+                $result .= "Error copying file: " . $file . " -> " . Config::SERVER_APACHE_CONF_SDCARD_DIR  ."/". basename($file) . "<br>";
+            }
+
+        }
+
 		return $result;
 	}
 
@@ -262,6 +251,19 @@ class Config {
         foreach (glob(Config::SERVER_NGINX_CONF_SDCARD_DIR."/*_host.conf") as $file) {
             unlink($file);
         }
+    }
+
+    public static function deleteAllHostsFromSDApache() {
+        foreach (glob(Config::SERVER_APACHE_CONF_SDCARD_DIR."/*_host.conf") as $file) {
+            unlink($file);
+        }
+    }
+
+    public static function getConfigType($serverType) {
+        if ($serverType == Server::LIGHTTPD) return ConfigType::SERVER_LIGHTTPD;
+        if ($serverType == Server::NGINX) return ConfigType::SERVER_NGINX;
+        if ($serverType == Server::APACHE) return ConfigType::SERVER_APACHE;
+        return ConfigType::SERVER_LIGHTTPD;
     }
 }
 

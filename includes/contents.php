@@ -40,7 +40,9 @@ class ContentGenerator {
 			break;
 
 		case self::PAGE_4:
-			$config = new Config(getServerType());
+		    $serverType = getServerType();
+		    $configType = Config::getConfigType($serverType);
+		    $config = new Config($configType);
 			$this->showConfig($config->getConfigFullPath());
 			break;
 
@@ -61,11 +63,11 @@ class ContentGenerator {
 		default:
 			if (getServerType() == Server::LIGHTTPD) $this->showGeneralStatisticLighttpd();
 			if (getServerType() == Server::NGINX) $this->showGeneralStatisticNginx();
+            if (getServerType() == Server::APACHE) $this->showGeneralStatisticApache();
 		}
 	}
 
 	function generateLink($page){
-
 		if ($page == self::PAGE_1) return "<a href = 'index.php?page=$page'>" . $this->page_names_array[self::PAGE_1] . "</a>";
 		if ($page == self::PAGE_2) return "<a href = 'index.php?page=$page'>" . $this->page_names_array[self::PAGE_2] . "</a>";
 		if ($page == self::PAGE_3) return "<a href = 'index.php?page=$page'>" . $this->page_names_array[self::PAGE_3] . "</a>";
@@ -185,105 +187,143 @@ class ContentGenerator {
 	<?php
 	}
 
-	function showConfig($configFile){
+	function showConfig($configFile)
+    {
 
-		$hostFile = $_GET["hostFile"];
-		$server = $_GET["server"];
-		if ($server == Server::LIGHTTPD) {
-			$config = new Config(ConfigType::SERVER_LIGHTTPD);
-			$configFile = $config->getConfigFullPath();
-		}
+        $hostFile = $_GET["hostFile"];
+        $server = $_GET["server"];
+        if ($server == Server::LIGHTTPD) {
+            $config = new Config(ConfigType::SERVER_LIGHTTPD);
+            $configFile = $config->getConfigFullPath();
+        }
 
-		if ($server == Server::NGINX) {
-			$config = new Config(ConfigType::SERVER_NGINX);
-			$configFile = $config->getConfigFullPath();
-		}
+        if ($server == Server::NGINX) {
+            $config = new Config(ConfigType::SERVER_NGINX);
+            $configFile = $config->getConfigFullPath();
+        }
 
-		$settings = getKSWEBSettings();
-		$move_inis = $settings["move_inis"];
-		if (isset($hostFile) && isset($server)) {
-			if ($server == Server::LIGHTTPD) {
-				$configFile = (($move_inis == "true") ? Config::SERVER_LIGHTTPD_CONF_SDCARD_DIR : Config::SERVER_LIGHTTPD_CONF_DIR) . "/" . $hostFile;
-			}
+        if ($server == Server::APACHE) {
+            $config = new Config(ConfigType::SERVER_APACHE);
+            $configFile = $config->getConfigFullPath();
+        }
 
-			if ($server == Server::NGINX) {
-				$configFile = (($move_inis == "true") ? Config::SERVER_NGINX_CONF_SDCARD_DIR : Config::SERVER_NGINX_CONF_DIR) . "/" . $hostFile;
-			}
-		}
+        $settings = getKSWEBSettings();
+        $move_inis = $settings["move_inis"];
+        if (isset($hostFile) && isset($server)) {
+            if ($server == Server::LIGHTTPD) {
+                $configFile = (($move_inis == "true") ? Config::SERVER_LIGHTTPD_CONF_SDCARD_DIR : Config::SERVER_LIGHTTPD_CONF_DIR) . "/" . $hostFile;
+            }
 
-?>
-	<script type="text/javascript">
-		$(document).ready(function() {
-		    $("#save-config").click(function(){
-		        saveConfig($("#config-file-content").val());
-		    });
+            if ($server == Server::NGINX) {
+                $configFile = (($move_inis == "true") ? Config::SERVER_NGINX_CONF_SDCARD_DIR : Config::SERVER_NGINX_CONF_DIR) . "/" . $hostFile;
+            }
 
-		    function saveConfig(configText) {
-		        var editors = editor.getValue();
-		        $('#result').css('display', 'none');
-		        $.post('includes/ajax/handler.php', {act: "save_config", configFile: "<?php echo $configFile; ?>", config_text: editors}, function(data) {
-		            $('#result').html(data);
-		        });
-		    }
-		});
-	</script>
-	<?php if ($_GET["page"] == ContentGenerator::PAGE_4) { ?>
-    <div class="row">
-        <div class="col s12 m12 l8 offset-l2">
-            <div class="card white">
-                <div class="card-content grey-text text-darken-3">
-            		<?php
-					showLighttpdConfigHref();
-					showHostListLighttpd();
-					?>
+            if ($server == Server::APACHE) {
+                $configFile = (($move_inis == "true") ? Config::SERVER_APACHE_CONF_SDCARD_DIR : Config::SERVER_APACHE_CONF_DIR) . "/" . $hostFile;
+            }
+        }
+
+        ?>
+        <script type="text/javascript">
+            $(document).ready(function () {
+                $("#save-config").click(function () {
+                    var configTxt = editor.getValue();
+                    $('#result').css('display', 'none');
+                    $.post('includes/ajax/handler.php', {
+                        act: "save_config",
+                        configFile: "<?php echo $configFile; ?>",
+                        config_text: configTxt
+                    }, function (data) {
+                        $('#result').html(data);
+                    });
+                });
+            });
+        </script>
+        <?php if ($_GET["page"] == ContentGenerator::PAGE_4) { ?>
+        <div class="row">
+            <div class="col s12 m12 l8 offset-l2">
+                <div class="card white">
+                    <div class="card-content grey-text text-darken-3">
+                        <?php
+                        showLighttpdConfigHref();
+                        showHostListLighttpd();
+                        ?>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-    <div class="row">
-        <div class="col s12 m12 l8 offset-l2">
-            <div class="card white">
-                <div class="card-content grey-text text-darken-3">
-                    <?php
-					showNginxConfigHref();
-					showHostListNginx();
-					?>
+        <div class="row">
+            <div class="col s12 m12 l8 offset-l2">
+                <div class="card white">
+                    <div class="card-content grey-text text-darken-3">
+                        <?php
+                        showNginxConfigHref();
+                        showHostListNginx();
+                        ?>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-<?php } ?>
-<?php if (file_exists($configFile)) { ?>
-<div class="row">
-    <div class="col s12 m12 l8 offset-l2">
-    <div id="result" class="card-panel" style="display:none;"></div>
-        <div class="card white">
-            <div class="card-content grey-text text-darken-3">
-			<span class="card-title">Text Editor</span>
-                <div class="right-align" style="margin-top: -45px;">
-                    <a id="save-config" onclick ="return false;" class="btn-floating waves-effect waves-light-grey white" style="box-shadow:none;"><i class="material-icons grey-text text-darken-3">&#xE161;</i></a>
+        <div class="row">
+            <div class="col s12 m12 l8 offset-l2">
+                <div class="card white">
+                    <div class="card-content grey-text text-darken-3">
+                        <?php
+                        showApacheConfigHref();
+                        showHostListApache();
+                        ?>
+                    </div>
                 </div>
-				<div class="input-field">
+            </div>
+        </div>
+
+    <?php } ?>
+        <?php if (file_exists($configFile)) { ?>
+        <div class="row">
+            <div class="col s12 m12 l8 offset-l2">
+                <div id="result" class="card-panel" style="display:none;"></div>
+                <div class="card white">
+                    <div class="card-content grey-text text-darken-3">
+                        <span class="card-title">Text Editor</span>
+                        <div class="right-align" style="margin-top: -45px;">
+                            <a id="save-config" onclick="return false;"
+                               class="btn-floating waves-effect waves-light-grey white" style="box-shadow:none;"><i
+                                        class="material-icons grey-text text-darken-3">&#xE161;</i></a>
+                        </div>
+                        <div class="input-field">
 <textarea id="config-file-content">
 <?php echo file_get_contents($configFile); ?>
 </textarea>
-<label style="padding-bottom:4px;" for="config-file-content"><?php echo basename($configFile); ?></label>
-				</div>
-			<script type='text/javascript'>
-			var editor = CodeMirror.fromTextArea(document.getElementById("config-file-content"), {
-			        mode: "properties",
-			        lineNumbers: true,
-			        lineWrapping: true,
-			        viewportMargin: Infinity
-			    });
-			</script>
+                            <label style="padding-bottom:4px;"
+                                   for="config-file-content"><?php echo basename($configFile); ?></label>
+                        </div>
+                        <script type='text/javascript'>
+                            var editor = CodeMirror.fromTextArea(document.getElementById("config-file-content"), {
+                                mode: "properties",
+                                lineNumbers: true,
+                                lineWrapping: true,
+                                viewportMargin: Infinity
+                            });
+                        </script>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    <?php } else { ?>
+
+        <div class="row">
+            <div class="col s12 m12 l8 offset-l2">
+                <div id="result" class="card-panel" style="display:none;"></div>
             </div>
         </div>
-    </div>
-</div>
-<?php } else echo "File \"$configFile\" not found!";  ?>
-        <?php
-	}
+        <?php echo "<script>
+                $('#result').text('File \'$configFile\' not found!');
+                $('#result').removeClass('card-panel green darken-1 white-text');
+                $('#result').addClass('card-panel red darken-1 white-text').fadeIn(1500).delay(5000).fadeOut(1500);
+                </script>";
+    }
+    }
 
 	function showKSWEBSettingsPage(){
 		$settings = getKSWEBSettings();
@@ -655,6 +695,197 @@ class ContentGenerator {
     </div>
         <?php
 	}
+
+function showGeneralStatisticApache() {
+    $cpu = getCPUInfo();
+    $memoryInfo = getMemInfo();
+    $batteryInfo = getBatteryInfo();
+    $wifiInfo = getWIFIInfo();
+    $serverInfo = getServerInfoApache();
+    ?>
+
+
+    <div class="row">
+        <div class="col s12 m12 l12">
+            <div class="card white" style="overflow-y: scroll">
+                <div class="card-content grey-text text-darken-3">
+                    <span class="card-title">General statistic</span>
+
+
+                    <table class="striped">
+                        <thead>
+                        <tr>
+                            <th colspan="2" class="center-align">
+                                <svg style="width:50px;height:50px" viewBox="0 0 24 24">
+                                    <path fill="#424242" d="M4,1H20A1,1 0 0,1 21,2V6A1,1 0 0,1 20,7H4A1,1 0 0,1 3,6V2A1,1 0 0,1 4,1M4,9H20A1,1 0 0,1 21,10V14A1,1 0 0,1 20,15H4A1,1 0 0,1 3,14V10A1,1 0 0,1 4,9M4,17H20A1,1 0 0,1 21,18V22A1,1 0 0,1 20,23H4A1,1 0 0,1 3,22V18A1,1 0 0,1 4,17M9,5H10V3H9V5M9,13H10V11H9V13M9,21H10V19H9V21M5,3V5H7V3H5M5,11V13H7V11H5M5,19V21H7V19H5Z" />
+                                </svg>
+                            </th>
+                            <th colspan="2" class="center-align">
+                                <svg style="width:50px;height:50px" viewBox="0 0 24 24">
+                                    <path fill="#424242" d="M17,17H7V7H17M21,11V9H19V7C19,5.89 18.1,5 17,5H15V3H13V5H11V3H9V5H7C5.89,5 5,5.89 5,7V9H3V11H5V13H3V15H5V17A2,2 0 0,0 7,19H9V21H11V19H13V21H15V19H17A2,2 0 0,0 19,17V15H21V13H19V11M13,13H11V11H13M15,9H9V15H15V9Z" />
+                                </svg>
+                            </th>
+                            <th colspan="2" class="center-align">
+                                <svg style="width:60px" viewBox="0 0 375 225" fill="#424242">
+                                    <g transform="translate(-68.5,-143.5)"><rect height="37.5" width="56.3" y="331" x="87.2"/><rect height="37.5" width="56.3" y="331" x="181"/><rect height="37.5" width="56.3" y="331" x="274.7"/><rect height="37.5" width="56.3" y="331" x="368.5"/><path d="m443.5 199.8v-56.3h-375v56.3c20.7 0 37.5 16.8 37.5 37.5 0 20.7-16.8 37.5-37.5 37.5v37.6h375v-37.5c-20.7 0-37.5-16.8-37.5-37.5 0-20.7 16.8-37.6 37.5-37.6zm-281.3 75H124.7V181h37.5zm75.1 0H199.8V181h37.5zm75 0H274.8V181h37.5zm75.1 0H349.9V181h37.5z"/></g>
+                                </svg>
+                            </th>
+                            <th colspan="2" class="center-align">
+                                <svg style="width:50px;height:50px" viewBox="0 0 24 24">
+                                    <path fill="#424242" d="M23,11H20V4L15,14H18V22M12.67,4H11V2H5V4H3.33A1.33,1.33 0 0,0 2,5.33V20.67C2,21.4 2.6,22 3.33,22H12.67C13.4,22 14,21.4 14,20.67V5.33A1.33,1.33 0 0,0 12.67,4Z" />
+                                </svg>
+                            </th>
+                            <th colspan="2" class="center-align">
+                                <svg style="width:50px;height:50px" fill="#424242" viewBox="0 0 24 24">
+                                    <path d="M12.01 21.49L23.64 7c-.45-.34-4.93-4-11.64-4C5.28 3 .81 6.66.36 7l11.63 14.49.01.01.01-.01z" fill-opacity=".3"/>
+                                    <path d="M0 0h24v24H0z" fill="none"/>
+                                    <path d="M3.53 10.95l8.46 10.54.01.01.01-.01 8.46-10.54C20.04 10.62 16.81 8 12 8c-4.81 0-8.04 2.62-8.47 2.95z"/>
+                                </svg>
+                            </th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr>
+                            <td class="right-align"><b>Server uptime:</b></td>
+                            <td class="left-align"><?php echo $serverInfo["hostname"]; ?></td>
+
+                            <td colspan="2"><?php echo $cpu["name"]; ?></td>
+
+                            <td class="right-align"><b>Total:</b></td>
+                            <td class="left-align"><?php echo $memoryInfo["total"] . " kb"; ?></td>
+
+                            <td class="right-align"><b>Capacity:</b></td>
+                            <td class="left-align"><?php echo $batteryInfo["capacity"] . "%"; ?></td>
+
+                            <td class="right-align"><b>Signal quality:</b></td>
+                            <td class="left-align"><?php echo $wifiInfo["quality"]; ?></td>
+                        </tr>
+                        <tr>
+                            <td class="right-align"><b>Server load:</b></td>
+                            <td class="left-align"><?php echo $serverInfo["uptime"]; ?></td>
+
+                            <script>
+
+                                $(function() {
+                                    var f = function() {
+                                        $.post('includes/ajax/handler.php', {act: "get_cpu_load"}, function(data) {
+
+                                            if (data == 'N/A') {
+                                                $('#cpu_usage_td').html(data);
+                                            } else {
+                                                $('#cpu_usage_td').html("<b>CPU usage:</b> " + data + "%");
+                                            }
+
+
+                                        });
+                                    };
+                                    f();
+                                    window.setInterval(f, 3000);
+                                });
+
+                            </script>
+
+                            <td colspan="2" class="center-align" id="cpu_usage_td"></td>
+
+                            <td class="right-align"><b>Free:</b></td>
+                            <td class="left-align"><?php echo $memoryInfo["free"] . " kb"; ?></td>
+
+                            <td class="right-align"><b>Voltage:</b></td>
+                            <td class="left-align"><?php echo $batteryInfo["voltage"] . " v"; ?></td>
+
+                            <td class="right-align"><b>Discarded packets:</b></td>
+                            <td class="left-align"><?php echo $wifiInfo["discarded_packets"]; ?></td>
+                        </tr>
+                        <tr>
+                            <td class="right-align"><b>Total accesses:</b></td>
+                            <td class="left-align"><?php echo $serverInfo["started_at"]; ?></td>
+
+                            <td class="right-align"></td>
+                            <td class="left-align"></td>
+
+                            <td class="right-align"><b>Filled:</b></td>
+                            <td class="left-align"><?php echo $memoryInfo["filled"] . " kb"; ?></td>
+
+                            <td class="right-align"><b>Status:</b></td>
+                            <td class="left-align"><?php echo $batteryInfo["status"]; ?></td>
+
+                            <td class="right-align"><b>Missed packets:</b></td>
+                            <td class="left-align"><?php echo $wifiInfo["missed_packets"]; ?></td>
+                        </tr>
+                        <tr>
+                            <td class="right-align"><b>CPU Usage:</b></td>
+                            <td class="left-align"><?php echo $serverInfo["requests"]; ?></td>
+
+                            <td class="right-align"></td>
+                            <td class="left-align"></td>
+
+                            <td class="right-align"></td>
+                            <td class="left-align"></td>
+
+                            <td class="right-align"><b>Temperature:</b></td>
+                            <td class="left-align"><?php echo $batteryInfo["temp"] . " C"; ?></td>
+
+                            <td class="right-align"></td>
+                            <td class="left-align"></td>
+                        </tr>
+                        <tr>
+                            <td class="right-align"><b>Traffic:</b></td>
+                            <td class="left-align"><?php echo $serverInfo["traffic"]; ?></td>
+
+                            <td class="right-align"></td>
+                            <td class="left-align"></td>
+
+                            <td class="right-align"></td>
+                            <td class="left-align"></td>
+
+                            <td class="right-align"><b>Health:</b></td>
+                            <td class="left-align"><?php echo $batteryInfo["health"]; ?></td>
+
+                            <td class="right-align"></td>
+                            <td class="left-align"></td>
+                        </tr>
+                        <tr>
+
+                            <td class="right-align"></td>
+                            <td class="left-align"></td>
+
+                            <td class="right-align"></td>
+                            <td class="left-align"></td>
+
+                            <td class="right-align"></td>
+                            <td class="left-align"></td>
+
+                            <td class="right-align"></td>
+                            <td class="left-align"></td>
+
+                            <td class="right-align"></td>
+                            <td class="left-align"></td>
+                        </tr>
+                        <tr>
+                            <td class="right-align"></td>
+                            <td class="left-align"></td>
+
+                            <td class="right-align"></td>
+                            <td class="left-align"></td>
+
+                            <td class="right-align"></td>
+                            <td class="left-align"></td>
+
+                            <td class="right-align"></td>
+                            <td class="left-align"></td>
+
+                            <td class="right-align"></td>
+                            <td class="left-align"></td>
+                        </tr>
+                        </tbody>
+                    </table>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <?php
+}
 
 	function showGeneralStatisticNginx(){
 		$cpu = getCPUInfo();

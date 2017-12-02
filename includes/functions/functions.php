@@ -11,7 +11,7 @@ const KSWEB_UTIL_MEM_INFO_CMD = "-m";
 const KSWEB_UTIL_WI_FI_INFO_CMD = "-w";
 const KSWEB_PREFERENCES_XML_CMD = "/data/data/ru.kslabs.ksweb/shared_prefs/ru.kslabs.ksweb_preferences.xml";
 const TMP_FILE_CONFIG = "/data/data/ru.kslabs.ksweb/tmp/tempConfig.ini";
-const VERSION = "2.0";
+const VERSION = "2.1";
 
 function showLighttpdConfigHref() {
     $config = new Config(ConfigType::SERVER_LIGHTTPD);
@@ -34,9 +34,18 @@ function showNginxConfigHref() {
 ?>
     </p><br>
     <?php
-}
+}?>
 
-function showHostListLighttpd() {
+<?php function showApacheConfigHref() { ?>
+    <?php $config = new Config(ConfigType::SERVER_APACHE); ?>
+    <span class="card-title">Apache config</span>
+    <p>
+        <?= "<a class='blue-text text-darken-4' href = '?page=4&server=" . Server::APACHE . "'>Config file: " . $config->getConfigFullPath() . "</a><br>"; ?>
+    </p>
+    <br>
+<?php } ?>
+
+<?php function showHostListLighttpd() {
 ?>
         <span class="card-title">Lighttpd host files list</span>
         <p>
@@ -74,6 +83,25 @@ function showHostListNginx() {
     }
 
 ?>
+    </p>
+    <?php
+}?>
+
+<?php function showHostListApache() { ?>
+    <span class="card-title">Apache host files list</span>
+    <p>
+        <?php
+        $settings = getKSWEBSettings();
+        $move_inis = $settings["move_inis"];
+        $f = scandir(($move_inis == "true") ? Config::SERVER_APACHE_CONF_SDCARD_DIR : Config::SERVER_APACHE_CONF_DIR);
+        if ($f != false) {
+            foreach($f as $file) {
+                if (preg_match('/\_(host)/', $file)) {
+                    echo "<a class='blue-text text-darken-4' href = '?page=4&server=" . Server::APACHE . "&hostFile=$file'>Open host: " . $file . "</a><br/>";
+                }
+            }
+        }
+        ?>
     </p>
     <?php
 }
@@ -295,12 +323,13 @@ function saveSystemSettings($settings) {
             $serverType = getServerType();
             if ($serverType == Server::LIGHTTPD) $authInfo = getAuthInfoLighttpd();
             if ($serverType == Server::NGINX) $authInfo = getAuthInfoNginx();
+            if ($serverType == Server::APACHE) $authInfo = getAuthInfoLighttpd();
 			
             if ($settings["current_password"] == $authInfo["password"]) {
                 $password = $settings["new_password"];
 
                 $serverType = getServerType();
-                if ($serverType == Server::LIGHTTPD) {
+                if ($serverType == Server::LIGHTTPD || $serverType == Server::APACHE ) {
                     unlink(LIGHTTPD_FOLDER_PASS);
                     $fp = fopen(LIGHTTPD_FOLDER_PASS, "a");
                     fwrite($fp, "admin:$password");
@@ -313,7 +342,7 @@ function saveSystemSettings($settings) {
                     fwrite($fp, "admin:{PLAIN}$password");
                     fclose($fp);
                 }
-                
+
 				echo "<script>Materialize.toast('Your password has been changed.', 4000);</script>";
             } else {
                 echo "<script>Materialize.toast('The current password you\'ve entered is incorrect. Please enter a different password.', 4000);</script>";
@@ -353,6 +382,10 @@ function getServerType() {
 
     if (strpos($serverSoftware, 'nginx') !== false) {
         return Server::NGINX;
+    }
+
+    if (strpos($serverSoftware, 'Apache') !== false) {
+        return Server::APACHE;
     }
 }
 
