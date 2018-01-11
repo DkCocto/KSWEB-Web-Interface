@@ -61,9 +61,9 @@ class ContentGenerator {
 			break;
 
 		default:
-			if (getServerType() == Server::LIGHTTPD) $this->showGeneralStatisticLighttpd();
+			if (getServerType() == Server::LIGHTTPD) $this->showServerStatistics();
 			if (getServerType() == Server::NGINX) $this->showGeneralStatisticNginx();
-            if (getServerType() == Server::APACHE) $this->showGeneralStatisticApache();
+            if (getServerType() == Server::APACHE) $this->showServerStatistics();
 		}
 	}
 
@@ -146,14 +146,21 @@ class ContentGenerator {
 	}
 
 	function showServerStatistics(){
+        if (getServerType() == Server::LIGHTTPD) {
+            $authInfo = getAuthInfoLighttpd();
+        } elseif (getServerType() == Server::APACHE) {
+            $authInfo = getAuthInfoApache();
+        } else {
+            $authInfo = getAuthInfoLighttpd();
+        }
 
-		$authInfo = getAuthInfoLighttpd();
 		$context = stream_context_create(array(
 			'http' => array(
 				'header' => "Authorization: Basic " . base64_encode($authInfo["login"] . ":" . $authInfo["password"])
 			)
 		));
-		$html = file_get_contents("http://" . str_replace("localhost", "127.0.0.1", $_SERVER["HTTP_HOST"]) . "/server-status", false, $context);
+
+        $html = file_get_contents("http://127.0.0.1:".$_SERVER['SERVER_PORT']."/server-status", false, $context);
 ?>
     <div class="row">
         <div class="col s12 m12 l12">
@@ -493,10 +500,16 @@ class ContentGenerator {
 	    });
 	});			
 	</script>
-	<li class="tab"><a <?php if($_GET['page'] == 0){ echo "class=\"active\""; }else{ ""; } ?> target="_self" id="home_page_button">Home</a></li>
-	<?php if (getServerType() != Server::NGINX) { ?>
-	<li class="tab"><a <?php if($_GET['page'] == 3){ echo "class=\"active\""; }else{ ""; } ?> target="_self" id="server_statistics_button">Server Statistics</a></li>
-	<?php } ?>
+	<li class="tab">
+        <a
+            <?php if($_GET['page'] == 0) {
+                echo "class=\"active\"";
+            }?>
+                target="_self" id="home_page_button">Home
+        </a>
+    </li>
+
+
 	<li class="tab"><a <?php if($_GET['page'] == 4){ echo "class=\"active\""; }else{ ""; } ?> target="_self" id="server-settings">Server Settings</a></li>
 	<li class="tab"><a <?php if($_GET['page'] == 5){ echo "class=\"active\""; }else{ ""; } ?> target="_self" id="mysql-settings">MySQL Settings</a></li>
 	<li class="tab"><a <?php if($_GET['page'] == 6){ echo "class=\"active\""; }else{ ""; } ?> target="_self" id="php-settings">PHP Settings</a></li>
@@ -506,392 +519,7 @@ class ContentGenerator {
 	<?php
 	}
 
-	function showGeneralStatisticLighttpd(){
-		$cpu = getCPUInfo();
-		$memoryInfo = getMemInfo();
-		$batteryInfo = getBatteryInfo();
-		$wifiInfo = getWIFIInfo();
-		$serverInfo = getServerInfoLighttpd();
-?>
-
-
-    <div class="row">
-        <div class="col s12 m12 l12">
-          <div class="card white" style="overflow-y: scroll">
-            <div class="card-content grey-text text-darken-3">
-              <span class="card-title">General statistic</span>
-
-
-    <table class="striped">
-        <thead>
-          <tr>
-              <th colspan="2" class="center-align">
-                <svg style="width:50px;height:50px" viewBox="0 0 24 24">
-                    <path fill="#424242" d="M4,1H20A1,1 0 0,1 21,2V6A1,1 0 0,1 20,7H4A1,1 0 0,1 3,6V2A1,1 0 0,1 4,1M4,9H20A1,1 0 0,1 21,10V14A1,1 0 0,1 20,15H4A1,1 0 0,1 3,14V10A1,1 0 0,1 4,9M4,17H20A1,1 0 0,1 21,18V22A1,1 0 0,1 20,23H4A1,1 0 0,1 3,22V18A1,1 0 0,1 4,17M9,5H10V3H9V5M9,13H10V11H9V13M9,21H10V19H9V21M5,3V5H7V3H5M5,11V13H7V11H5M5,19V21H7V19H5Z" />
-                </svg>
-              </th>
-              <th colspan="2" class="center-align">
-                <svg style="width:50px;height:50px" viewBox="0 0 24 24">
-                    <path fill="#424242" d="M17,17H7V7H17M21,11V9H19V7C19,5.89 18.1,5 17,5H15V3H13V5H11V3H9V5H7C5.89,5 5,5.89 5,7V9H3V11H5V13H3V15H5V17A2,2 0 0,0 7,19H9V21H11V19H13V21H15V19H17A2,2 0 0,0 19,17V15H21V13H19V11M13,13H11V11H13M15,9H9V15H15V9Z" />
-                </svg>
-              </th>
-              <th colspan="2" class="center-align">
-                <svg style="width:60px" viewBox="0 0 375 225" fill="#424242">
-                    <g transform="translate(-68.5,-143.5)"><rect height="37.5" width="56.3" y="331" x="87.2"/><rect height="37.5" width="56.3" y="331" x="181"/><rect height="37.5" width="56.3" y="331" x="274.7"/><rect height="37.5" width="56.3" y="331" x="368.5"/><path d="m443.5 199.8v-56.3h-375v56.3c20.7 0 37.5 16.8 37.5 37.5 0 20.7-16.8 37.5-37.5 37.5v37.6h375v-37.5c-20.7 0-37.5-16.8-37.5-37.5 0-20.7 16.8-37.6 37.5-37.6zm-281.3 75H124.7V181h37.5zm75.1 0H199.8V181h37.5zm75 0H274.8V181h37.5zm75.1 0H349.9V181h37.5z"/></g>
-                </svg>
-              </th>
-              <th colspan="2" class="center-align">
-                <svg style="width:50px;height:50px" viewBox="0 0 24 24">
-                    <path fill="#424242" d="M23,11H20V4L15,14H18V22M12.67,4H11V2H5V4H3.33A1.33,1.33 0 0,0 2,5.33V20.67C2,21.4 2.6,22 3.33,22H12.67C13.4,22 14,21.4 14,20.67V5.33A1.33,1.33 0 0,0 12.67,4Z" />
-                </svg>
-              </th>
-              <th colspan="2" class="center-align">
-                <svg style="width:50px;height:50px" fill="#424242" viewBox="0 0 24 24">
-                    <path d="M12.01 21.49L23.64 7c-.45-.34-4.93-4-11.64-4C5.28 3 .81 6.66.36 7l11.63 14.49.01.01.01-.01z" fill-opacity=".3"/>
-                    <path d="M0 0h24v24H0z" fill="none"/>
-                    <path d="M3.53 10.95l8.46 10.54.01.01.01-.01 8.46-10.54C20.04 10.62 16.81 8 12 8c-4.81 0-8.04 2.62-8.47 2.95z"/>
-                </svg>
-              </th>
-          </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td class="right-align"><b>Hostname:</b></td>
-                <td class="left-align"><?php echo $serverInfo["hostname"]; ?></td>
-
-                <td colspan="2"><?php echo $cpu["name"]; ?></td>
-
-                <td class="right-align"><b>Total:</b></td>
-                <td class="left-align"><?php echo $memoryInfo["total"] . " kb"; ?></td>
-
-                <td class="right-align"><b>Capacity:</b></td>
-                <td class="left-align"><?php echo $batteryInfo["capacity"] . "%"; ?></td>
-
-                <td class="right-align"><b>Signal quality:</b></td>
-                <td class="left-align"><?php echo $wifiInfo["quality"]; ?></td>
-            </tr>
-            <tr>
-                <td class="right-align"><b>Uptime:</b></td>
-                <td class="left-align"><?php echo $serverInfo["uptime"]; ?></td>
-
-				<script> 
-				
-				$(function() {
-					var f = function() {
-						$.post('includes/ajax/handler.php', {act: "get_cpu_load"}, function(data) {
-							
-							if (data == 'N/A') {
-								$('#cpu_usage_td').html(data);
-							} else {
-								$('#cpu_usage_td').html("<b>CPU usage:</b> " + data + "%");
-							}
-							
-							
-						});
-					};
-					f();
-					window.setInterval(f, 3000);
-				});
-				
-				</script>
-				
-                <td colspan="2" class="center-align" id="cpu_usage_td"></td>
-
-                <td class="right-align"><b>Free:</b></td>
-                <td class="left-align"><?php echo $memoryInfo["free"] . " kb"; ?></td>
-
-                <td class="right-align"><b>Voltage:</b></td>
-                <td class="left-align"><?php echo $batteryInfo["voltage"] . " v"; ?></td>
-
-                <td class="right-align"><b>Discarded packets:</b></td>
-                <td class="left-align"><?php echo $wifiInfo["discarded_packets"]; ?></td>
-            </tr>
-            <tr>
-                <td class="right-align"><b>Started at:</b></td>
-                <td class="left-align"><?php echo $serverInfo["started_at"]; ?></td>
-
-                <td class="right-align"></td>
-                <td class="left-align"></td>
-
-                <td class="right-align"><b>Filled:</b></td>
-                <td class="left-align"><?php echo $memoryInfo["filled"] . " kb"; ?></td>
-
-                <td class="right-align"><b>Status:</b></td>
-                <td class="left-align"><?php echo $batteryInfo["status"]; ?></td>
-
-                <td class="right-align"><b>Missed packets:</b></td>
-                <td class="left-align"><?php echo $wifiInfo["missed_packets"]; ?></td>
-            </tr>
-            <tr>
-                <td class="right-align"><b>Requests:</b></td>
-                <td class="left-align"><?php echo $serverInfo["requests"]; ?></td>
-
-                <td class="right-align"></td>
-                <td class="left-align"></td>
-
-                <td class="right-align"></td>
-                <td class="left-align"></td>
-
-                <td class="right-align"><b>Temperature:</b></td>
-                <td class="left-align"><?php echo $batteryInfo["temp"] . " C"; ?></td>
-
-                <td class="right-align"></td>
-                <td class="left-align"></td>
-            </tr>
-            <tr>
-                <td class="right-align"><b>Traffic:</b></td>
-                <td class="left-align"><?php echo $serverInfo["traffic"]; ?></td>
-
-                <td class="right-align"></td>
-                <td class="left-align"></td>
-
-                <td class="right-align"></td>
-                <td class="left-align"></td>
-
-                <td class="right-align"><b>Health:</b></td>
-                <td class="left-align"><?php echo $batteryInfo["health"]; ?></td>
-
-                <td class="right-align"></td>
-                <td class="left-align"></td>
-            </tr>
-            <tr>
-                <td class="right-align"><b>Requests average:</b></td>
-                <td class="left-align"><?php echo $serverInfo["requests_avr"]; ?></td>
-
-                <td class="right-align"></td>
-                <td class="left-align"></td>
-
-                <td class="right-align"></td>
-                <td class="left-align"></td>
-
-                <td class="right-align"></td>
-                <td class="left-align"></td>
-
-                <td class="right-align"></td>
-                <td class="left-align"></td>
-            </tr>
-            <tr>
-                <td class="right-align"><b>Traffic average:</b></td>
-                <td class="left-align"><?php echo $serverInfo["traffic_avr"]; ?></td>
-
-                <td class="right-align"></td>
-                <td class="left-align"></td>
-
-                <td class="right-align"></td>
-                <td class="left-align"></td>
-
-                <td class="right-align"></td>
-                <td class="left-align"></td>
-
-                <td class="right-align"></td>
-                <td class="left-align"></td>
-            </tr>
-        </tbody>
-    </table>
-
-            </div>
-          </div>
-        </div>
-    </div>
-        <?php
-	}
-
-function showGeneralStatisticApache() {
-    $cpu = getCPUInfo();
-    $memoryInfo = getMemInfo();
-    $batteryInfo = getBatteryInfo();
-    $wifiInfo = getWIFIInfo();
-    $serverInfo = getServerInfoApache();
-    ?>
-
-
-    <div class="row">
-        <div class="col s12 m12 l12">
-            <div class="card white" style="overflow-y: scroll">
-                <div class="card-content grey-text text-darken-3">
-                    <span class="card-title">General statistic</span>
-
-
-                    <table class="striped">
-                        <thead>
-                        <tr>
-                            <th colspan="2" class="center-align">
-                                <svg style="width:50px;height:50px" viewBox="0 0 24 24">
-                                    <path fill="#424242" d="M4,1H20A1,1 0 0,1 21,2V6A1,1 0 0,1 20,7H4A1,1 0 0,1 3,6V2A1,1 0 0,1 4,1M4,9H20A1,1 0 0,1 21,10V14A1,1 0 0,1 20,15H4A1,1 0 0,1 3,14V10A1,1 0 0,1 4,9M4,17H20A1,1 0 0,1 21,18V22A1,1 0 0,1 20,23H4A1,1 0 0,1 3,22V18A1,1 0 0,1 4,17M9,5H10V3H9V5M9,13H10V11H9V13M9,21H10V19H9V21M5,3V5H7V3H5M5,11V13H7V11H5M5,19V21H7V19H5Z" />
-                                </svg>
-                            </th>
-                            <th colspan="2" class="center-align">
-                                <svg style="width:50px;height:50px" viewBox="0 0 24 24">
-                                    <path fill="#424242" d="M17,17H7V7H17M21,11V9H19V7C19,5.89 18.1,5 17,5H15V3H13V5H11V3H9V5H7C5.89,5 5,5.89 5,7V9H3V11H5V13H3V15H5V17A2,2 0 0,0 7,19H9V21H11V19H13V21H15V19H17A2,2 0 0,0 19,17V15H21V13H19V11M13,13H11V11H13M15,9H9V15H15V9Z" />
-                                </svg>
-                            </th>
-                            <th colspan="2" class="center-align">
-                                <svg style="width:60px" viewBox="0 0 375 225" fill="#424242">
-                                    <g transform="translate(-68.5,-143.5)"><rect height="37.5" width="56.3" y="331" x="87.2"/><rect height="37.5" width="56.3" y="331" x="181"/><rect height="37.5" width="56.3" y="331" x="274.7"/><rect height="37.5" width="56.3" y="331" x="368.5"/><path d="m443.5 199.8v-56.3h-375v56.3c20.7 0 37.5 16.8 37.5 37.5 0 20.7-16.8 37.5-37.5 37.5v37.6h375v-37.5c-20.7 0-37.5-16.8-37.5-37.5 0-20.7 16.8-37.6 37.5-37.6zm-281.3 75H124.7V181h37.5zm75.1 0H199.8V181h37.5zm75 0H274.8V181h37.5zm75.1 0H349.9V181h37.5z"/></g>
-                                </svg>
-                            </th>
-                            <th colspan="2" class="center-align">
-                                <svg style="width:50px;height:50px" viewBox="0 0 24 24">
-                                    <path fill="#424242" d="M23,11H20V4L15,14H18V22M12.67,4H11V2H5V4H3.33A1.33,1.33 0 0,0 2,5.33V20.67C2,21.4 2.6,22 3.33,22H12.67C13.4,22 14,21.4 14,20.67V5.33A1.33,1.33 0 0,0 12.67,4Z" />
-                                </svg>
-                            </th>
-                            <th colspan="2" class="center-align">
-                                <svg style="width:50px;height:50px" fill="#424242" viewBox="0 0 24 24">
-                                    <path d="M12.01 21.49L23.64 7c-.45-.34-4.93-4-11.64-4C5.28 3 .81 6.66.36 7l11.63 14.49.01.01.01-.01z" fill-opacity=".3"/>
-                                    <path d="M0 0h24v24H0z" fill="none"/>
-                                    <path d="M3.53 10.95l8.46 10.54.01.01.01-.01 8.46-10.54C20.04 10.62 16.81 8 12 8c-4.81 0-8.04 2.62-8.47 2.95z"/>
-                                </svg>
-                            </th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <tr>
-                            <td class="right-align"><b>Server uptime:</b></td>
-                            <td class="left-align"><?php echo $serverInfo["hostname"]; ?></td>
-
-                            <td colspan="2"><?php echo $cpu["name"]; ?></td>
-
-                            <td class="right-align"><b>Total:</b></td>
-                            <td class="left-align"><?php echo $memoryInfo["total"] . " kb"; ?></td>
-
-                            <td class="right-align"><b>Capacity:</b></td>
-                            <td class="left-align"><?php echo $batteryInfo["capacity"] . "%"; ?></td>
-
-                            <td class="right-align"><b>Signal quality:</b></td>
-                            <td class="left-align"><?php echo $wifiInfo["quality"]; ?></td>
-                        </tr>
-                        <tr>
-                            <td class="right-align"><b>Server load:</b></td>
-                            <td class="left-align"><?php echo $serverInfo["uptime"]; ?></td>
-
-                            <script>
-
-                                $(function() {
-                                    var f = function() {
-                                        $.post('includes/ajax/handler.php', {act: "get_cpu_load"}, function(data) {
-
-                                            if (data == 'N/A') {
-                                                $('#cpu_usage_td').html(data);
-                                            } else {
-                                                $('#cpu_usage_td').html("<b>CPU usage:</b> " + data + "%");
-                                            }
-
-
-                                        });
-                                    };
-                                    f();
-                                    window.setInterval(f, 3000);
-                                });
-
-                            </script>
-
-                            <td colspan="2" class="center-align" id="cpu_usage_td"></td>
-
-                            <td class="right-align"><b>Free:</b></td>
-                            <td class="left-align"><?php echo $memoryInfo["free"] . " kb"; ?></td>
-
-                            <td class="right-align"><b>Voltage:</b></td>
-                            <td class="left-align"><?php echo $batteryInfo["voltage"] . " v"; ?></td>
-
-                            <td class="right-align"><b>Discarded packets:</b></td>
-                            <td class="left-align"><?php echo $wifiInfo["discarded_packets"]; ?></td>
-                        </tr>
-                        <tr>
-                            <td class="right-align"><b>Total accesses:</b></td>
-                            <td class="left-align"><?php echo $serverInfo["started_at"]; ?></td>
-
-                            <td class="right-align"></td>
-                            <td class="left-align"></td>
-
-                            <td class="right-align"><b>Filled:</b></td>
-                            <td class="left-align"><?php echo $memoryInfo["filled"] . " kb"; ?></td>
-
-                            <td class="right-align"><b>Status:</b></td>
-                            <td class="left-align"><?php echo $batteryInfo["status"]; ?></td>
-
-                            <td class="right-align"><b>Missed packets:</b></td>
-                            <td class="left-align"><?php echo $wifiInfo["missed_packets"]; ?></td>
-                        </tr>
-                        <tr>
-                            <td class="right-align"><b>CPU Usage:</b></td>
-                            <td class="left-align"><?php echo $serverInfo["requests"]; ?></td>
-
-                            <td class="right-align"></td>
-                            <td class="left-align"></td>
-
-                            <td class="right-align"></td>
-                            <td class="left-align"></td>
-
-                            <td class="right-align"><b>Temperature:</b></td>
-                            <td class="left-align"><?php echo $batteryInfo["temp"] . " C"; ?></td>
-
-                            <td class="right-align"></td>
-                            <td class="left-align"></td>
-                        </tr>
-                        <tr>
-                            <td class="right-align"><b>Traffic:</b></td>
-                            <td class="left-align"><?php echo $serverInfo["traffic"]; ?></td>
-
-                            <td class="right-align"></td>
-                            <td class="left-align"></td>
-
-                            <td class="right-align"></td>
-                            <td class="left-align"></td>
-
-                            <td class="right-align"><b>Health:</b></td>
-                            <td class="left-align"><?php echo $batteryInfo["health"]; ?></td>
-
-                            <td class="right-align"></td>
-                            <td class="left-align"></td>
-                        </tr>
-                        <tr>
-
-                            <td class="right-align"></td>
-                            <td class="left-align"></td>
-
-                            <td class="right-align"></td>
-                            <td class="left-align"></td>
-
-                            <td class="right-align"></td>
-                            <td class="left-align"></td>
-
-                            <td class="right-align"></td>
-                            <td class="left-align"></td>
-
-                            <td class="right-align"></td>
-                            <td class="left-align"></td>
-                        </tr>
-                        <tr>
-                            <td class="right-align"></td>
-                            <td class="left-align"></td>
-
-                            <td class="right-align"></td>
-                            <td class="left-align"></td>
-
-                            <td class="right-align"></td>
-                            <td class="left-align"></td>
-
-                            <td class="right-align"></td>
-                            <td class="left-align"></td>
-
-                            <td class="right-align"></td>
-                            <td class="left-align"></td>
-                        </tr>
-                        </tbody>
-                    </table>
-
-                </div>
-            </div>
-        </div>
-    </div>
-    <?php
-}
-
 	function showGeneralStatisticNginx(){
-		$cpu = getCPUInfo();
-		$memoryInfo = getMemInfo();
-		$batteryInfo = getBatteryInfo();
-		$wifiInfo = getWIFIInfo();
 		$serverInfo = getServerInfoNginx();
 ?>
     <div class="row">
@@ -909,161 +537,29 @@ function showGeneralStatisticApache() {
                     <path fill="#424242" d="M4,1H20A1,1 0 0,1 21,2V6A1,1 0 0,1 20,7H4A1,1 0 0,1 3,6V2A1,1 0 0,1 4,1M4,9H20A1,1 0 0,1 21,10V14A1,1 0 0,1 20,15H4A1,1 0 0,1 3,14V10A1,1 0 0,1 4,9M4,17H20A1,1 0 0,1 21,18V22A1,1 0 0,1 20,23H4A1,1 0 0,1 3,22V18A1,1 0 0,1 4,17M9,5H10V3H9V5M9,13H10V11H9V13M9,21H10V19H9V21M5,3V5H7V3H5M5,11V13H7V11H5M5,19V21H7V19H5Z" />
                 </svg>
               </th>
-              <th colspan="2" class="center-align">
-                <svg style="width:50px;height:50px" viewBox="0 0 24 24">
-                    <path fill="#424242" d="M17,17H7V7H17M21,11V9H19V7C19,5.89 18.1,5 17,5H15V3H13V5H11V3H9V5H7C5.89,5 5,5.89 5,7V9H3V11H5V13H3V15H5V17A2,2 0 0,0 7,19H9V21H11V19H13V21H15V19H17A2,2 0 0,0 19,17V15H21V13H19V11M13,13H11V11H13M15,9H9V15H15V9Z" />
-                </svg>
-              </th>
-              <th colspan="2" class="center-align">
-                <svg style="width:60px" viewBox="0 0 375 225" fill="#424242">
-                    <g transform="translate(-68.5,-143.5)"><rect height="37.5" width="56.3" y="331" x="87.2"/><rect height="37.5" width="56.3" y="331" x="181"/><rect height="37.5" width="56.3" y="331" x="274.7"/><rect height="37.5" width="56.3" y="331" x="368.5"/><path d="m443.5 199.8v-56.3h-375v56.3c20.7 0 37.5 16.8 37.5 37.5 0 20.7-16.8 37.5-37.5 37.5v37.6h375v-37.5c-20.7 0-37.5-16.8-37.5-37.5 0-20.7 16.8-37.6 37.5-37.6zm-281.3 75H124.7V181h37.5zm75.1 0H199.8V181h37.5zm75 0H274.8V181h37.5zm75.1 0H349.9V181h37.5z"/></g>
-                </svg>
-              </th>
-              <th colspan="2" class="center-align">
-                <svg style="width:50px;height:50px" viewBox="0 0 24 24">
-                    <path fill="#424242" d="M23,11H20V4L15,14H18V22M12.67,4H11V2H5V4H3.33A1.33,1.33 0 0,0 2,5.33V20.67C2,21.4 2.6,22 3.33,22H12.67C13.4,22 14,21.4 14,20.67V5.33A1.33,1.33 0 0,0 12.67,4Z" />
-                </svg>
-              </th>
-              <th colspan="2" class="center-align">
-                <svg style="width:50px;height:50px" fill="#424242" viewBox="0 0 24 24">
-                    <path d="M12.01 21.49L23.64 7c-.45-.34-4.93-4-11.64-4C5.28 3 .81 6.66.36 7l11.63 14.49.01.01.01-.01z" fill-opacity=".3"/>
-                    <path d="M0 0h24v24H0z" fill="none"/>
-                    <path d="M3.53 10.95l8.46 10.54.01.01.01-.01 8.46-10.54C20.04 10.62 16.81 8 12 8c-4.81 0-8.04 2.62-8.47 2.95z"/>
-                </svg>
-              </th>
           </tr>
         </thead>
         <tbody>
             <tr>
-                <td class="right-align"><b>Active connections:</b></td>
-                <td class="left-align"><?php echo $serverInfo["activeConnections"]; ?></td>
-
-                <td colspan="2" class="center-align"><?php echo $cpu["name"]; ?></td>
-
-                <td class="right-align"><b>Total:</b></td>
-                <td class="left-align"><?php echo $memoryInfo["total"] . " kb"; ?></td>
-
-                <td class="right-align"><b>Capacity:</b></td>
-                <td class="left-align"><?php echo $batteryInfo["capacity"] . "%"; ?></td>
-
-                <td class="right-align"><b>Signal quality:</b></td>
-                <td class="left-align"<?php echo $wifiInfo["quality"]; ?></td>
+                <td class="center-align"><b>Active connections: </b> <?php echo $serverInfo["activeConnections"];?></td>
             </tr>
             <tr>
-                <td class="right-align"><b>Accepted connections:</b></td>
-                <td class="left-align"><?php echo $serverInfo["accepts"]; ?></td>
-
-				<script> 
-				
-				$(function() {
-					var f = function() {
-						$.post('includes/ajax/handler.php', {act: "get_cpu_load"}, function(data) {
-							
-							if (data == 'N/A') {
-								$('#cpu_usage_td').html(data);
-							} else {
-								$('#cpu_usage_td').html("<b>CPU usage:</b> " + data + "%");
-							}
-							
-							
-						});
-					};
-					f();
-					window.setInterval(f, 3000);
-				});
-				
-				</script>
-				
-                <td colspan="2" class="center-align" id="cpu_usage_td"></td>
-
-                <td class="right-align"><b>Free:</b></td>
-                <td class="left-align"><?php echo $memoryInfo["free"] . " kb"; ?></td>
-
-                <td class="right-align"><b>Voltage:</b></td>
-                <td class="left-align"><?php echo $batteryInfo["voltage"] . " v"; ?></td>
-
-                <td class="right-align"><b>Discarded packets:</b></td>
-                <td class="left-align"><?php echo $wifiInfo["discarded_packets"]; ?></td>
+                <td class="center-align"><b>Accepted connections: </b><?php echo $serverInfo["accepts"]; ?></td>
             </tr>
             <tr>
-                <td class="right-align"><b>Handled connections:</b></td>
-                <td class="left-align"><?php echo $serverInfo["handled"]; ?></td>
-
-                <td class="right-align"><b></b></td>
-                <td class="left-align"></td>
-
-                <td class="right-align"><b>Filled:</b></td>
-                <td class="left-align"><?php echo $memoryInfo["filled"] . " kb"; ?></td>
-
-                <td class="right-align"><b>Status:</b></td>
-                <td class="left-align"><?php echo $batteryInfo["status"]; ?></td>
-
-                <td class="right-align"><b>Missed packets:</b></td>
-                <td class="left-align"><?php echo $wifiInfo["missed_packets"]; ?></td>
+                <td class="center-align"><b>Handled connections: </b> <?php echo $serverInfo["handled"]; ?></td>
             </tr>
             <tr>
-                <td class="right-align"><b>Handled requests:</b></td>
-                <td class="left-align"><?php echo $serverInfo["requests"]; ?></td>
-
-                <td class="right-align"><b></b></td>
-                <td class="left-align"></td>
-
-                <td class="right-align"><b></b></td>
-                <td class="left-align"></td>
-
-                <td class="right-align"><b>Temperature:</b></td>
-                <td class="left-align"><?php echo $batteryInfo["temp"] . " C"; ?></td>
-
-                <td class="right-align"><b></b></td>
-                <td class="left-align"></td>
+                <td class="center-align"><b>Handled requests: </b><?php echo $serverInfo["requests"]; ?></td>
             </tr>
             <tr>
-                <td class="right-align"><b>Read request headers:</b></td>
-                <td class="left-align"><?php echo $serverInfo["reading"]; ?></td>
-
-                <td class="right-align"><b></b></td>
-                <td class="left-align"></td>
-
-                <td class="right-align"><b></b></td>
-                <td class="left-align"></td>
-
-                <td class="right-align"><b>Health:</b></td>
-                <td class="left-align"><?php echo $batteryInfo["health"]; ?></td>
-
-                <td class="right-align"><b></b></td>
-                <td class="left-align"></td>
+                <td class="center-align"><b>Read request headers: </b><?php echo $serverInfo["reading"]; ?></td>
             </tr>
             <tr>
-                <td class="right-align"><b>Wrote responses:</b></td>
-                <td class="left-align"><?php echo $serverInfo["writing"]; ?></td>
-
-                <td class="right-align"><b></b></td>
-                <td class="left-align"></td>
-
-                <td class="right-align"><b></b></td>
-                <td class="left-align"></td>
-
-                <td class="right-align"><b></b></td>
-                <td class="left-align"></td>
-
-                <td class="right-align"><b></b></td>
-                <td class="left-align"></td>
+                <td class="center-align"><b>Wrote responses: </b><?php echo $serverInfo["writing"]; ?></td>
             </tr>
             <tr>
-                <td class="right-align"><b>Keep-alive connections:</b></td>
-                <td class="left-align"><?php echo $serverInfo["waiting"]; ?></td>
-
-                <td class="right-align"><b></b></td>
-                <td class="left-align"></td>
-
-                <td class="right-align"><b></b></td>
-                <td class="left-align"></td>
-
-                <td class="right-align"><b></b></td>
-                <td class="left-align"></td>
-
-                <td class="right-align"><b></b></td>
-                <td class="left-align"></td>
+                <td class="center-align"><b>Keep-alive connections : </b><?php echo $serverInfo["waiting"]; ?></td>
             </tr>
         </tbody>
     </table>

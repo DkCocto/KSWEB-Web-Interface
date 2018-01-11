@@ -4,6 +4,7 @@ const SERVER_LIGHTTPD_CONF_SDCARD_DIR = "/mnt/sdcard/ksweb/conf/lighttpd";
 const SERVER_NGINX_CONF_SDCARD_DIR = "/mnt/sdcard/ksweb/conf/nginx";
 const LIGHTTPD_FOLDER_PASS = "/data/data/ru.kslabs.ksweb/components/etc/.pass";
 const NGINX_FOLDER_PASS = "/data/data/ru.kslabs.ksweb/components/etc/.pass_nginx";
+const APACHE_FOLDER_PASS = "/data/data/ru.kslabs.ksweb/components/etc/.pass_apache";
 const ANDROID_VERSION_MARKER = "/data/data/ru.kslabs.ksweb/components/etc/androidVer";
 const KSWEB_UTIL_BATTERY_INFO_CMD = "-b";
 const KSWEB_UTIL_CPU_INFO_CMD = "-c";
@@ -11,7 +12,7 @@ const KSWEB_UTIL_MEM_INFO_CMD = "-m";
 const KSWEB_UTIL_WI_FI_INFO_CMD = "-w";
 const KSWEB_PREFERENCES_XML_CMD = "/data/data/ru.kslabs.ksweb/shared_prefs/ru.kslabs.ksweb_preferences.xml";
 const TMP_FILE_CONFIG = "/data/data/ru.kslabs.ksweb/tmp/tempConfig.ini";
-const VERSION = "2.1";
+const VERSION = "2.11";
 
 function showLighttpdConfigHref() {
     $config = new Config(ConfigType::SERVER_LIGHTTPD);
@@ -170,6 +171,66 @@ function getServerInfo() {
     }
 }
 
+/*Server Version: Apache (compiled for KSWEB)/2.4.28 (Unix) mod_fastcgi/mod_fastcgi-SNAP-0910052141
+Server MPM: prefork
+Server Built: Nov 1 2017 14:56:45
+Current Time: Monday, 04-Dec-2017 13:05:00 MSK
+Restart Time: Monday, 04-Dec-2017 12:50:38 MSK
+Parent Server Config. Generation: 1
+Parent Server MPM Generation: 0
+Server uptime: 14 minutes 22 seconds
+Server load: -1.00 -1.00 -1.00
+Total accesses: 251 - Total Traffic: 1020 kB
+CPU Usage: u2.22 s4.08 cu0 cs0 - .731% CPU load
+.291 requests/sec - 1211 B/second - 4161 B/request
+2 requests currently being processed, 3 idle workers*/
+
+
+function getServerInfoApache() {
+    $serverInfo = array();
+    $authInfo = getAuthInfoApache();
+    $context = stream_context_create(array(
+        'http' => array(
+            'header' => "Authorization: Basic " . base64_encode($authInfo["login"] . ":" . $authInfo["password"])
+        )
+    ));
+    $html = file_get_contents("http://" . str_replace("localhost", "127.0.0.1", $_SERVER["HTTP_HOST"]) . "/server-status", false, $context);
+
+    $dom = new DOMDocument;
+    $dom->loadHTML($html);
+    $dt = $dom->getElementsByTagName('dt');
+    foreach($dt as $dt) {
+
+        if (strpos($dt->nodeValue, 'Server Version: Apache') !== false) {
+            $serverInfo["serverVersion"] = $dt->nodeValue;
+        }
+
+        if (strpos($dt->nodeValue, 'Server uptime') !== false) {
+            $arr = explode(": ", $dt->nodeValue);
+            $serverInfo["uptime"] = $arr;
+        }
+        if (strpos($dt->nodeValue, 'Server load') !== false) {
+            $arr = explode(": ", $dt->nodeValue);
+            $serverInfo["load"] = $arr[1];
+        }
+        if (strpos($dt->nodeValue, 'Total accesses') !== false) {
+            $serverInfo["totalAccesses"] = $dt->nodeValue;
+            $serverInfo["totalAccesses"] = str_replace("Total accesses:","<b>Total accesses:</b>", $serverInfo["totalAccesses"]);
+            $serverInfo["totalAccesses"] = str_replace("Total Traffic:","<b>Total Traffic:</b>", $serverInfo["totalAccesses"]);
+        }
+        if (strpos($dt->nodeValue, 'CPU Usage') !== false) {
+            $arr = explode(": ", $dt->nodeValue);
+            $serverInfo["cpuUsage"] = $arr[1];
+        }
+        if (strpos($dt->nodeValue, 'requests/sec') !== false) {
+            $parts = explode(" - ", $dt->nodeValue);
+            $serverInfo["traffic"] = $parts[0]."<br>".$parts[1]."<br>".$parts[2];
+        }
+    }
+    return $serverInfo;
+
+}
+
 function getServerInfoLighttpd() {
     $serverInfo = array();
     $authInfo = getAuthInfoLighttpd();
@@ -316,6 +377,20 @@ function getAuthInfoNginx() {
     }
 }
 
+function getAuthInfoApache() {
+    $authInfo = array();
+    $file_handle = @fopen(APACHE_FOLDER_PASS, "r");
+    if ($file_handle) {
+        while (!feof($file_handle)) {
+            $line = fgets($file_handle);
+            $array = explode(':', $line);
+            $authInfo["login"] = $array[0];
+            $authInfo["password"] = $array[1];
+            return $authInfo;
+        }
+    }
+}
+
 function saveSystemSettings($settings) {
     if (!empty($settings["new_password"])) {
         if ($settings["new_password"] == $settings["confirm_password"]) {
@@ -323,15 +398,22 @@ function saveSystemSettings($settings) {
             $serverType = getServerType();
             if ($serverType == Server::LIGHTTPD) $authInfo = getAuthInfoLighttpd();
             if ($serverType == Server::NGINX) $authInfo = getAuthInfoNginx();
-            if ($serverType == Server::APACHE) $authInfo = getAuthInfoLighttpd();
+            if ($serverType == Server::APACHE) $authInfo = getAuthInfoApache();
 			
             if ($settings["current_password"] == $authInfo["password"]) {
                 $password = $settings["new_password"];
 
                 $serverType = getServerType();
-                if ($serverType == Server::LIGHTTPD || $serverType == Server::APACHE ) {
+                if ($serverType == Server::LIGHTTPD ) {
                     unlink(LIGHTTPD_FOLDER_PASS);
                     $fp = fopen(LIGHTTPD_FOLDER_PASS, "a");
+                    fwrite($fp, "admin:$password");
+                    fclose($fp);
+                }
+
+                if ($serverType == Server::APACHE) {
+                    unlink(APACHE_FOLDER_PASS);
+                    $fp = fopen(APACHE_FOLDER_PASS, "a");
                     fwrite($fp, "admin:$password");
                     fclose($fp);
                 }
