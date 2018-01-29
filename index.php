@@ -1,7 +1,5 @@
 <?php
-    require_once("includes/class/Server.php");
-    require_once("includes/class/ConfigType.php");
-    require_once("includes/class/Config.php");
+    require_once("includes/classes.php");
     require_once("includes/contents.php");
     require_once("includes/html/head.php");
 ?>
